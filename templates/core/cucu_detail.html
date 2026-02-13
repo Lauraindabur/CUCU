@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ object.titulo }}</h2>
+<p>{{ object.descripcion }}</p>
+<p>Precio: {{ object.precio }}</p>
+<p>Ubicación: {{ object.ubicacion }}</p>
+<a href="{% url 'core:update' object.pk %}">Editar</a> |
+<a href="{% url 'core:delete' object.pk %}">Eliminar</a> |
+<a href="{% url 'core:list' %}">Volver a la lista</a>
+{% endblock %}
