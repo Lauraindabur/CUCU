@@ -20,8 +20,18 @@ class CucuBuilder:
         self._data['ubicacion'] = ubicacion
         return self
 
+    def con_usuario(self, usuario):
+        self._data['usuario'] = usuario
+        return self
+
     def build(self):
         # Validación simple
-        if not all([self._data.get('titulo'), self._data.get('descripcion'), self._data.get('precio'), self._data.get('ubicacion')]):
+        if not all([
+            self._data.get('titulo'),
+            self._data.get('descripcion'),
+            self._data.get('precio'),
+            self._data.get('ubicacion'),
+            self._data.get('usuario'),
+        ]):
             raise ValueError('Todos los campos son obligatorios')
         return Cucu(**self._data)
