@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from core.services import CucuService
 
 @method_decorator(csrf_exempt, name='dispatch')
-class DisenharCucuView(View):
+class DiseñarCucuView(View):
 	def post(self, request):
 		data = request.POST
 		datos = {
@@ -16,5 +16,5 @@ class DisenharCucuView(View):
 			'ubicacion': data.get('ubicacion'),
 		}
 		service = CucuService()
-		cucu = service.disenhar_cucu(datos)
+		cucu = service.diseñar_cucu(datos)
 		return JsonResponse({'status': 'ok', 'cucu': cucu.titulo})
