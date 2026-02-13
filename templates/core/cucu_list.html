@@ -1,10 +1,1 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Lista de CUCU</h2>
-<ul>
-    {% for cucu in object_list %}
-        <li><a href="{% url 'core:detail' cucu.pk %}">{{ cucu.titulo }}</a> - {{ cucu.precio }}</li>
-    {% endfor %}
-</ul>
-<a href="{% url 'core:create' %}">Crear nuevo CUCU</a>
-{% endblock %}
+

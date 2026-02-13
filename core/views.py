@@ -19,29 +19,5 @@ class DisenharCucuView(View):
 		cucu = service.disenhar_cucu(datos)
 		return JsonResponse({'status': 'ok', 'cucu': cucu.titulo})
 
-class CucuListView(ListView):
-	model = Cucu
-	template_name = "core/cucu_list.html"
-
-class CucuDetailView(DetailView):
-	model = Cucu
-	template_name = "core/cucu_detail.html"
-
-class CucuCreateView(CreateView):
-	model = Cucu
-	fields = ["titulo", "descripcion", "precio", "ubicacion"]
-	template_name = "core/cucu_form.html"
-	success_url = reverse_lazy("core:list")
-
-class CucuUpdateView(UpdateView):
-	model = Cucu
-	fields = ["titulo", "descripcion", "precio", "ubicacion"]
-	template_name = "core/cucu_form.html"
-	success_url = reverse_lazy("core:list")
-
-class CucuDeleteView(DeleteView):
-	model = Cucu
-	template_name = "core/cucu_confirm_delete.html"
-	success_url = reverse_lazy("core:list")
 
 
