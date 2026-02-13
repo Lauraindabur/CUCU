@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>{% if object %}Editar{% else %}Crear{% endif %} CUCU</h2>
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-</form>
-<a href="{% url 'core:list' %}">Volver a la lista</a>
-{% endblock %}

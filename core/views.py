@@ -1,9 +1,6 @@
 
 from django.views import View
 from django.http import JsonResponse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from core.models import Cucu
 from core.services import CucuService
 
 class DisenharCucuView(View):

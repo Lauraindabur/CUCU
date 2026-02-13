@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>¿Eliminar CUCU?</h2>
-<p>{{ object.titulo }}</p>
-<form method="post">{% csrf_token %}
-    <button type="submit">Confirmar</button>
-</form>
-<a href="{% url 'core:list' %}">Cancelar</a>
-{% endblock %}
