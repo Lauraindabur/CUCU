@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import DiseñarCucuView
+from .views import DisenarCucuView
 
 app_name = "core"
 
 urlpatterns = [
-    path('diseñar/', DiseñarCucuView.as_view(), name='diseñar'),
+    path('disenar/', DisenarCucuView.as_view(), name='disenar'),
+    path('dise\u00f1ar/', DisenarCucuView.as_view(), name='dise\u00f1ar'),
 ]
