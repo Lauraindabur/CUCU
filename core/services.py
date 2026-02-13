@@ -6,7 +6,7 @@ class CucuService:
     def __init__(self, notificador=None):
         self.notificador = notificador or NotificacionFactory.crear_notificador()
 
-    def disenhar_cucu(self, datos):
+    def diseñar_cucu(self, datos):
         builder = CucuBuilder()
         cucu_obj = (
             builder
