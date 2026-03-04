@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "ratings",
 ]
 
+# Es indicarle a django que usaremos un modelo personalizado, no el predeterminado que
+# tiene django
 AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [

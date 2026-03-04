@@ -25,7 +25,8 @@ INSTALLED_APPS que se encuentra en: config\settings.py. Sirve para decirle a Dja
 AUTH_USER_MODEL = "accounts.User" 
 Es indicarle a django que usaremos un modelo personalizado, no el predeterminado que tiene django
 
-
+python manage.py makemigrations accounts
+python manage.py migrate
 
 
 -->
