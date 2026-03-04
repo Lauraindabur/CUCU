@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import CertificadoManipulacion
+
+
+@admin.register(CertificadoManipulacion)
+class CertificadoManipulacionAdmin(admin.ModelAdmin):
+    pass
