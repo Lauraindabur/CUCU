@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crear Pedido</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    :root {
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
+      --border: color-mix(in srgb, CanvasText 12%, Canvas);
+      --card: color-mix(in srgb, CanvasText 4%, Canvas);
+      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
+      --radius: 14px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: Canvas;
+      background: color-mix(in srgb, LinkText 12%, Canvas);
+      color: var(--fg);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    a { color: LinkText; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 28px 16px; }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    .hint { margin: 6px 0 0; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    form { display: grid; gap: var(--gap); margin-top: 10px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: var(--fg);
+      outline: none;
+    }
+    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.03); }
+    .out {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
+    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; filter: brightness(1.03); }
+    .note {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .steps a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: inherit;
+      text-decoration: none;
+    }
+    .steps a:hover { text-decoration: none; filter: brightness(1.03); }
+    .steps .active a {
+      color: var(--fg);
+      border-color: color-mix(in srgb, LinkText 40%, var(--border));
+    }
+    .steps .done a { color: var(--fg); }
+    .pill {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .done .pill {
+      border-color: color-mix(in srgb, Green 40%, var(--border));
+      color: color-mix(in srgb, Green 55%, var(--fg));
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .catalog {
+      display: grid;
+      gap: var(--gap);
+      margin-top: 10px;
+    }
+    .pub {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+    }
+    .pub h3 { margin: 0; font-size: 16px; letter-spacing: -0.01em; }
+    .pub p { margin: 6px 0 0; color: var(--muted); }
+    .pub .meta { margin-top: 8px; font-weight: 700; }
+    .pub .controls {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+    }
+    .pub .qty {
+      width: 110px;
+    }
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      margin-top: 12px;
+    }
+    .bar strong { font-size: 15px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Crear Pedido</h1>
+        <p class="hint">Crea un pedido asociado a una publicación.</p>
+      </div>
+      <a class="btn" href="/">Inicio</a>
+    </div>
+
+    <section class="card">
+      <form id="form">
+        <label>
+          Teléfono
+          <input name="telefono" required autocomplete="tel" placeholder="Ej: 3001234567" />
+        </label>
+
+        <div class="bar">
+          <div>
+            <div style="font-weight:700">Carrito</div>
+            <div class="hint" style="margin:2px 0 0">Selecciona una o más publicaciones para tu pedido.</div>
+          </div>
+          <div>
+            <strong>Total estimado: </strong><span id="total">$0.00</span>
+          </div>
+        </div>
+
+        <div id="catalog" class="catalog" aria-live="polite"></div>
+
+        <button type="submit">Crear pedido</button>
+      </form>
+
+      <div class="note">
+        Para crear una publicación, usa <a href="/admin/">Admin</a>.
+      </div>
+
+      <div class="actions" id="actions" hidden>
+        <a class="btn" id="goPago" href="/ui/pago/">Continuar a Pago</a>
+      </div>
+
+      <pre id="out" class="out" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script>
+    const out = document.getElementById('out');
+    const actions = document.getElementById('actions');
+    const goPago = document.getElementById('goPago');
+    const catalog = document.getElementById('catalog');
+    const totalEl = document.getElementById('total');
+
+    // Flujo natural: si no hay sesión, vuelve a Login
+    const bootToken = localStorage.getItem('token');
+    if (!bootToken) {
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/ui/login/?next=${next}`;
+    }
+
+    let publicaciones = [];
+
+    function formatMoney(value) {
+      const n = Number(value || 0);
+      return n.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+    }
+
+    function recomputeTotal() {
+      let sum = 0;
+      for (const pub of publicaciones) {
+        const row = document.querySelector(`[data-pub-id="${pub.id}"]`);
+        if (!row) continue;
+        const checked = row.querySelector('input[type="checkbox"]')?.checked;
+        const qty = Number(row.querySelector('input[name="qty"]')?.value || 0);
+        if (checked && qty > 0) sum += Number(pub.precio) * qty;
+      }
+      totalEl.textContent = formatMoney(sum);
+    }
+
+    function renderCatalog() {
+      if (!publicaciones.length) {
+        catalog.innerHTML = `
+          <div class="note">
+            No hay publicaciones para seleccionar. Crea algunas desde <a href="/admin/">Admin</a>.
+          </div>
+        `;
+        return;
+      }
+
+      const last = JSON.parse(localStorage.getItem('cart_selection') || '{}');
+
+      catalog.innerHTML = publicaciones.map((p) => {
+        const prevQty = Number(last[String(p.id)] || 0);
+        const checked = prevQty > 0;
+        const qty = checked ? prevQty : 1;
+        const desc = (p.descripcion || '').toString();
+        const short = desc.length > 140 ? (desc.slice(0, 140) + '…') : desc;
+        return `
+          <div class="pub" data-pub-id="${p.id}">
+            <div>
+              <h3>${p.titulo}</h3>
+              <p>${short || 'Sin descripción.'}</p>
+              <div class="meta">${formatMoney(p.precio)}</div>
+            </div>
+            <div class="controls">
+              <label style="display:flex; gap:8px; align-items:center; font-weight:700">
+                <input type="checkbox" name="sel" ${checked ? 'checked' : ''} />
+                Agregar
+              </label>
+              <label style="display:grid; gap:6px; font-weight:600; justify-items:end">
+                Cantidad
+                <input class="qty" name="qty" type="number" min="1" step="1" value="${qty}" ${checked ? '' : 'disabled'} />
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      catalog.querySelectorAll('[data-pub-id] input[type="checkbox"]').forEach((cb) => {
+        cb.addEventListener('change', (e) => {
+          const row = e.target.closest('[data-pub-id]');
+          const qtyInput = row.querySelector('input[name="qty"]');
+          qtyInput.disabled = !e.target.checked;
+          if (e.target.checked && (!qtyInput.value || Number(qtyInput.value) < 1)) qtyInput.value = 1;
+          recomputeTotal();
+        });
+      });
+      catalog.querySelectorAll('[data-pub-id] input[name="qty"]').forEach((qty) => {
+        qty.addEventListener('input', recomputeTotal);
+      });
+
+      recomputeTotal();
+    }
+
+    async function loadPublicaciones() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      catalog.innerHTML = '<div class="note">Cargando publicaciones...</div>';
+      const res = await fetch('/api/publicaciones', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ([]));
+      if (!res.ok) {
+        catalog.innerHTML = `<div class="note">No se pudieron cargar publicaciones: ${res.status}</div>`;
+        return;
+      }
+      publicaciones = Array.isArray(json) ? json : [];
+      renderCatalog();
+    }
+
+    loadPublicaciones();
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.classList.remove('ok', 'err');
+      out.textContent = 'Procesando...';
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        out.classList.add('err');
+        out.textContent = 'No hay sesión. Redirigiendo a Login...';
+        actions.hidden = true;
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        setTimeout(() => { window.location.href = `/ui/login/?next=${next}`; }, 400);
+        return;
+      }
+
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      const selection = {};
+      const publicacion_ids = [];
+      for (const pub of publicaciones) {
+        const row = document.querySelector(`[data-pub-id="${pub.id}"]`);
+        if (!row) continue;
+        const checked = row.querySelector('input[type="checkbox"]')?.checked;
+        if (!checked) continue;
+        const qty = Math.max(1, Number(row.querySelector('input[name="qty"]')?.value || 1));
+        selection[String(pub.id)] = qty;
+        for (let i = 0; i < qty; i++) publicacion_ids.push(pub.id);
+      }
+
+      if (!publicacion_ids.length) {
+        out.classList.add('err');
+        out.textContent = 'Selecciona al menos una publicación para crear el pedido.';
+        actions.hidden = true;
+        return;
+      }
+
+      localStorage.setItem('cart_selection', JSON.stringify(selection));
+
+      const payload = {
+        telefono: data.telefono,
+        publicacion_ids,
+      };
+
+      const res = await fetch('/api/pedidos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      out.classList.add(res.ok ? 'ok' : 'err');
+      out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
+
+      if (res.ok && json && json.id) {
+        localStorage.setItem('last_pedido_id', String(json.id));
+        const pid = encodeURIComponent(String(json.id));
+        goPago.href = `/ui/pago/?pedido_id=${pid}`;
+        actions.hidden = false;
+        setTimeout(() => {
+          window.location.href = goPago.href;
+        }, 700);
+      }
+    });
+  </script>
+</body>
+</html>
