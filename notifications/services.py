@@ -1,5 +1,5 @@
-from infra.factories import NotificacionFactory
-from models import Notificacion
+from .infra.factories import NotificacionFactory
+from .models import Notificacion
 
 
 class NotificacionService:

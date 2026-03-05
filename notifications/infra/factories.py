@@ -1,5 +1,5 @@
 import os
-from models import Notificacion
+from ..models import Notificacion
 
 
 class NotificacionFactory:

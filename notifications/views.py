@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .services import NotificacionService
-from api.serializers import NotificacionSerializer
+from .api.serializers import NotificacionSerializer
 
 class MarcarNotificacionLeidaView(APIView):
 
