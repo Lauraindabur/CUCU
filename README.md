@@ -85,6 +85,32 @@ Agregué alias para que también funcione POST /pago (y variantes con /) en:
 urls.py
 urls.py
 
+-------------------------------
+NOTIFICATIONS
+factories.py -> NotificacionFactory es donde esta toda la creacion de cualquier tipo de noti y lo guarda.
+        Patrón Factory: valida que el tipo sea uno de {pedido, pago, cerca, sistema} antes de crear.
+        Si el tipo no es válido lanza ValueError. 
 
+services.py -> NotificacionService esta toda la logica de la gestion de las notis con:
+        enviar() que es crear una notificación para un usuario — llama a NotificacionFactory.crear()
+        marcar_leida() busca la noti en la db y le cambia el estado a leida=True, si ya estaba leída lanza ValueError
+        obtener_usuario() obtiene todas las notificaciones del usuario ordenadas por fecha_envio desc
+api/serializers.py -> el objeto tipo Notificacion de models lo convierte en json con id, tipo, mensaje, fecha_envio, leida, usuario
+
+views.py -> Reune los metodos anteriores solo para usarlos de acuerdo al get/post pero no calcula nada de logica del negocio
+        MarcarNotificacionLeidaView() -> POST /api/notificaciones/{id}/leer/ — recibe el id de la noti, llama al service,
+            el service mira si esta leida: si lo está devuelve 400, sino la marca y devuelve 200 con el objeto actualizado
+
+        MisNotificacionesView() -> GET /api/notificaciones/ — obtiene el usuario del token JWT, busca sus notificaciones,
+            devuelve lista de notis en JSON
+
+ACEPTAR PEDIDO 
+
+Solo el vendedor puede aceptar: AcceptOrderService.accept_order() verifica que pedido.publicacion.usuario_id == user.id, si no lanza PermissionDeniedError -> 403 en services.py y views.py.
+Solo se aceptan pedidos PENDIENTE: si el estado no es PENDIENTE lanza ValidationError -> 400 en services.py.
+Cambia estado a ACEPTADO: pedido.estado = "ACEPTADO" y pedido.save(update_fields=["estado"]) en services.py.
+
+Al aceptar se notifica al comprador: AcceptOrderService.accept_order() llama a NotificacionService.enviar() con el usuario que hizo el pedido y mensaje "Tu pedido fue aceptado" en services.py.
+--------------------------------------------
 
 -->
