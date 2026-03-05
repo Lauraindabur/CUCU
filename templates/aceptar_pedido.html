@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aceptar Pedido</title>
+  <meta name="color-scheme" content="light" />
+  <!-- Estilo implementado temporalmente en el html para mostrar funcionalidad -->
+  <style>
+    :root {
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
+      --border: color-mix(in srgb, CanvasText 12%, Canvas);
+      --card: color-mix(in srgb, CanvasText 4%, Canvas);
+      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
+      --radius: 14px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: color-mix(in srgb, LinkText 12%, Canvas);
+      color: var(--fg);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    a { color: LinkText; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px; }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    .hint { margin: 6px 0 0; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    form { display: grid; gap: var(--gap); margin-top: 10px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: var(--fg);
+      outline: none;
+    }
+    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.03); }
+    .out {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
+    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; filter: brightness(1.03); }
+    .note {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .summary {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      display: grid;
+      gap: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 4%, Canvas);
+    }
+    .badge.pendiente { border-color: color-mix(in srgb, Orange 40%, var(--border)); color: color-mix(in srgb, Orange 70%, var(--fg)); }
+    .badge.aceptado  { border-color: color-mix(in srgb, Green 40%, var(--border));  color: color-mix(in srgb, Green 60%, var(--fg)); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Aceptar Pedido</h1>
+        <p class="hint">Como vendedor, acepta un pedido pendiente.</p>
+      </div>
+      <a class="btn" href="/">Inicio</a>
+    </div>
+
+    <section class="card">
+      <form id="form">
+        <label>
+          Pedido ID
+          <input name="pedido_id" type="number" required inputmode="numeric" placeholder="Ej: 5" />
+        </label>
+        <button type="submit" id="submitBtn">Aceptar pedido</button>
+      </form>
+
+      <!-- Resumen del pedido cargado -->
+      <div id="summary" class="summary" hidden>
+        <div><strong>Estado actual:</strong> <span id="pedidoEstado">-</span></div>
+        <div><strong>Teléfono:</strong> <span id="pedidoTel">-</span></div>
+        <div><strong>Total:</strong> <span id="pedidoTotal">-</span></div>
+      </div>
+
+      <div class="note">
+        Solo el <strong>dueño de la publicación</strong> puede aceptar el pedido.
+        El comprador recibirá una notificación automáticamente.
+      </div>
+
+      <div class="actions" id="actions" hidden>
+        <a class="btn" href="/">Volver al inicio</a>
+        <a class="btn" href="/ui/notificaciones/">Ver notificaciones</a>
+      </div>
+
+      <pre id="out" class="out" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script>
+    const out = document.getElementById('out');
+    const actions = document.getElementById('actions');
+    const summary = document.getElementById('summary');
+    const pedidoEstado = document.getElementById('pedidoEstado');
+    const pedidoTel = document.getElementById('pedidoTel');
+    const pedidoTotal = document.getElementById('pedidoTotal');
+
+    // Si no hay sesión, redirigir a login
+    const token = localStorage.getItem('token');
+    if (!token) {
+      const next = encodeURIComponent(window.location.pathname);
+      window.location.href = `/ui/login/?next=${next}`;
+    }
+
+    // Prefill desde querystring
+    const params = new URLSearchParams(window.location.search);
+    const qsPedidoId = params.get('pedido_id');
+    const pedidoInput = document.querySelector('input[name="pedido_id"]');
+    if (qsPedidoId) pedidoInput.value = qsPedidoId;
+
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+    }
+
+    // Cargar resumen del pedido al cambiar el ID
+    async function loadPedido(pedidoId) {
+      summary.hidden = true;
+      const t = localStorage.getItem('token');  
+      if (!pedidoId || !t) return;
+
+      const res = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}`, {
+        headers: { 'Authorization': `Bearer ${t}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+
+      const estadoText = (json.estado || '').toUpperCase();
+      pedidoEstado.innerHTML = `<span class="badge ${estadoText === 'PENDIENTE' ? 'pendiente' : 'aceptado'}">${estadoText}</span>`;
+      pedidoTel.textContent = json.telefono || '-';
+      pedidoTotal.textContent = formatMoney(json.total);
+      summary.hidden = false;
+    }
+
+    pedidoInput.addEventListener('change', () => loadPedido(pedidoInput.value));
+    if (qsPedidoId) loadPedido(qsPedidoId);
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.classList.remove('ok', 'err');
+      out.textContent = 'Procesando...';
+      actions.hidden = true;
+
+      const t = localStorage.getItem('token');
+      if (!t) {
+        out.classList.add('err');
+        out.textContent = 'No hay sesión. Redirigiendo...';
+        setTimeout(() => { window.location.href = '/ui/login/'; }, 400);
+        return;
+      }
+
+      const pedidoId = pedidoInput.value;
+      if (!pedidoId) {
+        out.classList.add('err');
+        out.textContent = 'Ingresa un Pedido ID.';
+        return;
+      }
+
+      const res = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}/aceptar/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${t}`,
+        },
+      });
+
+      const json = await res.json().catch(() => ({}));
+      out.classList.add(res.ok ? 'ok' : 'err');
+      out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
+
+      if (res.ok) {
+        actions.hidden = false;
+        // Llenar resumen directo desde la respuesta del PATCH
+        const estadoText = (json.estado || 'ACEPTADO').toUpperCase();
+        pedidoEstado.innerHTML = `<span class="badge aceptado">${estadoText}</span>`;
+        pedidoTel.textContent = json.telefono || '-';
+        pedidoTotal.textContent = formatMoney(json.total);
+        summary.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

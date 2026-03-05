@@ -25,6 +25,8 @@ from .web_views import (
     ui_pago,
     ui_pedido,
     ui_registro,
+    ui_aceptar_pedido,
+    ui_notificaciones,
 )
 
 urlpatterns = [
@@ -34,6 +36,9 @@ urlpatterns = [
     path('ui/login/', ui_login, name='ui-login'),
     path('ui/pedido/', ui_pedido, name='ui-pedido'),
     path('ui/pago/', ui_pago, name='ui-pago'),
+    #--------------
+    path('ui/aceptar-pedido/', ui_aceptar_pedido, name='ui-aceptar-pedido'),
+    path('ui/notificaciones/', ui_notificaciones, name='ui-notificaciones'),
 
     # Aliases to satisfy simplified API paths (e.g. POST /registro)
     path('', include('accounts.urls')),
