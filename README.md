@@ -28,5 +28,18 @@ Es indicarle a django que usaremos un modelo personalizado, no el predeterminado
 python manage.py makemigrations accounts
 python manage.py migrate
 
+---------------------------------
+NOTIFACTIONS
+factories.py -> NotificacionFactory es donde esta toda la creacion de cualquier tipo de noti y lo guarda 
+services.py -> NotificacionService esta toda la logica de la gestion de las notis con 
+        enviar() que es crear una notificación para un usuario
+        marcar_leida() busca la noti en la db y le cambia el estado
+        obtener_usuario()  obtiene todas las notificaciones del usuario
+serializer.py -> el objeto tipo Notificacion de models lo converte en json con id,tipo,mensaje
+view.py-> Reune los emtodos anteriores solo para usarlos de acuerdo al get/post pero no calcula nada de logica del negocio
+        MarcarNotificacionLeidaView() -> crea un endpoint recibe el id de la noti, llama al service y esta ya mira si esta leida-> no lo marca sino lo marca, luego la view envia el resultado en http
+        MisNotificacionesView()-> toma del get se obitene el id del usrio y se buscan sus notificaciones devuelve lista de notis
+
+
 
 -->
