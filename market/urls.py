@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import PedidoAceptarAPIView, 
+from .views import PedidoAceptarAPIView
 from .api_views import PedidoCreateAPIView, PedidoDetailAPIView, PublicacionListAPIView
 
 
