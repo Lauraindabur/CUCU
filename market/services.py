@@ -23,6 +23,11 @@ class OrderService:
         if not telefono:
             raise ValidationError("El teléfono es requerido")
 
+        has_one = publicacion_id is not None
+        has_many = publicacion_ids is not None
+        if has_one and has_many:
+            raise ValidationError("Usa publicacion_id o publicacion_ids (no ambos)")
+
         if publicacion_ids is None:
             publicacion_ids = []
 

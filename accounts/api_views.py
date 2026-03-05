@@ -46,7 +46,8 @@ class LoginAPIView(APIView):
 
         return Response(
             {
-                "token": result.token,
+                "access": result.access,
+                "refresh": result.refresh,
                 "user": UserOutputSerializer(result.user).data,
             },
             status=status.HTTP_200_OK,

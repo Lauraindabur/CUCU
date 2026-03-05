@@ -327,7 +327,7 @@
       catalog.innerHTML = '<div class="note">Cargando publicaciones...</div>';
       const res = await fetch('/api/publicaciones', {
         method: 'GET',
-        headers: { 'Authorization': `Token ${token}` },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       const json = await res.json().catch(() => ([]));
       if (!res.ok) {
@@ -387,7 +387,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });

@@ -211,18 +211,24 @@
       });
 
       const json = await res.json().catch(() => ({}));
-      if (res.ok && json.token) {
-        localStorage.setItem('token', json.token);
+      if (res.ok && json && typeof json === 'object') {
+        // API devuelve JWT: { access, refresh, user }
+        if (json.access) localStorage.setItem('token', String(json.access));
+        if (json.refresh) localStorage.setItem('refresh', String(json.refresh));
       }
 
       // No mostrar el token en pantalla
       const safeBody = (res.ok && json && typeof json === 'object')
-        ? { ...json, ...(json.token ? { token: '[oculto]' } : {}) }
+        ? {
+            ...json,
+            ...(json.access ? { access: '[oculto]' } : {}),
+            ...(json.refresh ? { refresh: '[oculto]' } : {}),
+          }
         : json;
       out.classList.add(res.ok ? 'ok' : 'err');
       out.textContent = JSON.stringify({ status: res.status, body: safeBody }, null, 2);
 
-      if (res.ok && json.token) {
+      if (res.ok && json && typeof json === 'object' && json.access) {
         // Flujo natural: tras login, continuar al destino
         setTimeout(() => {
           window.location.href = next || '/ui/pedido/';

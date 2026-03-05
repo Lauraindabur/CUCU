@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from common.exceptions import AuthenticationError, ConflictError, ValidationError
 
@@ -13,7 +13,8 @@ from .models import User
 
 @dataclass(frozen=True)
 class LoginResult:
-    token: str
+    access: str
+    refresh: str
     user: User
 
 
@@ -52,5 +53,5 @@ class AccountService:
         if not user.is_active:
             raise AuthenticationError("Usuario inactivo")
 
-        token, _ = Token.objects.get_or_create(user=user)
-        return LoginResult(token=token.key, user=user)
+        refresh = RefreshToken.for_user(user)
+        return LoginResult(access=str(refresh.access_token), refresh=str(refresh), user=user)

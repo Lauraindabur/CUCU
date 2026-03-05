@@ -13,15 +13,6 @@ class PedidoCreateInputSerializer(serializers.Serializer):
     telefono = serializers.CharField(max_length=20)
     total = serializers.FloatField(required=False)
 
-    def validate(self, attrs):
-        has_one = attrs.get("publicacion_id") is not None
-        has_many = attrs.get("publicacion_ids") is not None
-        if has_one and has_many:
-            raise serializers.ValidationError("Usa publicacion_id o publicacion_ids (no ambos)")
-        if not has_one and not has_many:
-            raise serializers.ValidationError("Debes enviar publicacion_id o publicacion_ids")
-        return attrs
-
 
 class PublicacionOutputSerializer(serializers.ModelSerializer):
     class Meta:

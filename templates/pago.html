@@ -255,7 +255,7 @@
 
       const res = await fetch(`/api/pedidos/${encodeURIComponent(String(pedidoId))}`, {
         method: 'GET',
-        headers: { 'Authorization': `Token ${token}` },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -312,7 +312,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });

@@ -33,6 +33,11 @@ urlpatterns = [
     path('ui/pedido/', ui_pedido, name='ui-pedido'),
     path('ui/pago/', ui_pago, name='ui-pago'),
 
+    # Aliases to satisfy simplified API paths (e.g. POST /registro)
+    path('', include('accounts.urls')),
+    path('', include('market.urls')),
+    path('', include('payments.urls')),
+
     path('api/', include('accounts.urls')),
     path('api/', include('market.urls')),
     path('api/', include('payments.urls')),
