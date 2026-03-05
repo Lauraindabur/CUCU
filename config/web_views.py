@@ -19,3 +19,11 @@ def ui_pedido(request):
 
 def ui_pago(request):
     return render(request, "pago.html")
+
+
+def ui_aceptar_pedido(request):
+    return render(request, "aceptar_pedido.html")
+
+
+def ui_notificaciones(request):
+    return render(request, "notificaciones.html")

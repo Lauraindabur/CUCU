@@ -4,7 +4,7 @@ from notifications.services import NotificacionService
 from .models import Pedido
 from .models import Pedido, PedidoItem, Publicacion
 
-class OrderService:
+class AcceptOrderService:
 
     @staticmethod
     def accept_order(*, user, pedido_id: int) -> Pedido:
@@ -74,7 +74,7 @@ class OrderService:
             pid_int = int(pid)
             counts[pid_int] = counts.get(pid_int, 0) + 1
 
-        publicaciones = list(Publicacion.objects.filter(id__in=list(counts.keys())))
+        publicaciones = list(Publicacion.objects.select_related('usuario').filter(id__in=list(counts.keys())))
         if len(publicaciones) != len(counts):
             found_ids = {p.id for p in publicaciones}
             missing = [pid for pid in counts.keys() if pid not in found_ids]
@@ -107,6 +107,13 @@ class OrderService:
                 cantidad=int(qty),
                 precio_unitario=float(pub.precio),
             )
+
+        # Notificar al vendedor que recibió un nuevo pedido
+        NotificacionService.enviar(
+            usuario=first_publicacion.usuario,
+            tipo="pedido",
+            mensaje=f"Tienes un nuevo pedido #{pedido.id} de '{first_publicacion.titulo}'"
+        )
 
         return pedido
 
