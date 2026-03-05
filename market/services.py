@@ -1,8 +1,8 @@
 from common.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from notifications.services import NotificacionService
 
-from .models import Pedido
-from .models import Pedido, PedidoItem, Publicacion
+from .builders import PedidoBuilder
+from .models import Pedido, Publicacion
 
 class AcceptOrderService:
 
@@ -51,68 +51,22 @@ class OrderService:
         total: float | None = None,
     ) -> Pedido:
         # total se calcula del backend para evitar manipulación
-        if not telefono:
-            raise ValidationError("El teléfono es requerido")
+        _ = total
 
-        has_one = publicacion_id is not None
-        has_many = publicacion_ids is not None
-        if has_one and has_many:
-            raise ValidationError("Usa publicacion_id o publicacion_ids (no ambos)")
-
-        if publicacion_ids is None:
-            publicacion_ids = []
-
-        if publicacion_id is not None:
-            publicacion_ids = [int(publicacion_id)]
-
-        if not publicacion_ids:
-            raise ValidationError("Debes seleccionar al menos una publicación")
-
-        # Contabilizar cantidades (si vienen repetidas)
-        counts: dict[int, int] = {}
-        for pid in publicacion_ids:
-            pid_int = int(pid)
-            counts[pid_int] = counts.get(pid_int, 0) + 1
-
-        publicaciones = list(Publicacion.objects.select_related('usuario').filter(id__in=list(counts.keys())))
-        if len(publicaciones) != len(counts):
-            found_ids = {p.id for p in publicaciones}
-            missing = [pid for pid in counts.keys() if pid not in found_ids]
-            raise NotFoundError(f"Publicación no encontrada: {missing[0]}")
-
-        publicaciones_by_id = {p.id: p for p in publicaciones}
-        computed_total = 0.0
-        for pub_id, qty in counts.items():
-            computed_total += float(publicaciones_by_id[pub_id].precio) * int(qty)
-
-        if computed_total <= 0:
-            raise ValidationError("El total debe ser mayor a 0")
-
-        # Por compatibilidad, mantenemos el FK `publicacion` en Pedido como la primera del carrito
-        first_publicacion = publicaciones_by_id[next(iter(counts.keys()))]
-
-        pedido = Pedido.objects.create(
-            usuario=user,
-            publicacion=first_publicacion,
-            telefono=telefono,
-            total=computed_total,
+        pedido = (
+            PedidoBuilder()
+            .for_user(user)
+            .with_telefono(telefono)
+            .with_publicacion_id(publicacion_id)
+            .with_publicacion_ids(publicacion_ids)
+            .build()
         )
-
-        # Crear items
-        for pub_id, qty in counts.items():
-            pub = publicaciones_by_id[pub_id]
-            PedidoItem.objects.create(
-                pedido=pedido,
-                publicacion=pub,
-                cantidad=int(qty),
-                precio_unitario=float(pub.precio),
-            )
 
         # Notificar al vendedor que recibió un nuevo pedido
         NotificacionService.enviar(
-            usuario=first_publicacion.usuario,
+            usuario=pedido.publicacion.usuario,
             tipo="pedido",
-            mensaje=f"Tienes un nuevo pedido #{pedido.id} de '{first_publicacion.titulo}'"
+            mensaje=f"Tienes un nuevo pedido #{pedido.id} de '{pedido.publicacion.titulo}'"
         )
 
         return pedido
