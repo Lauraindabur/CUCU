@@ -29,4 +29,49 @@ python manage.py makemigrations accounts
 python manage.py migrate
 
 
+
+HU1:
+Ingresar nombre, email y contraseña: el request lo recibe RegisterInputSerializer (nombre, email, password) en serializers.py.
+Guardar en base de datos: AccountService.register_user() crea el User y hace user.save() en services.py.
+No permitir email duplicado: email es unique=True en el modelo y además se valida con exists() y se responde 409 (Conflict) si ya existe en models.py y services.py.
+Fecha de registro automática: fecha_registro = DateTimeField(auto_now_add=True) en models.py.
+Endpoint
+
+Registro: POST /registro y POST /api/registro (ambos funcionan) en urls.py y urls.py.
+
+HU2:
+
+Puede ingresar email y contraseña: LoginInputSerializer recibe email + password en serializers.py.
+El sistema valida credenciales: AccountService.login() usa authenticate() y si falla devuelve 401 “Credenciales inválidas” en services.py y api_views.py.
+Devuelve respuesta correcta si son válidas: POST /login (y también POST /api/login) responde 200 con { token, user } en api_views.py y rutas en urls.py + urls.py.
+Autenticación configurada: el proyecto está configurado con Token Authentication (DRF authtoken) como auth principal en settings.py. (Es token-based, no JWT; si necesitas específicamente JWT, lo implemento.)
+
+HU6:
+
+Se crea pedido asociado a publicación: OrderService.create_order() crea Pedido con publicacion=... en services.py. El modelo tiene FK publicacion en models.py.
+Relacionado con usuario: el pedido se crea con usuario=request.user (JWT + IsAuthenticated) en api_views.py y FK usuario en models.py.
+Estado inicial = Pendiente/Aceptado: el modelo define estado por defecto PENDIENTE en models.py (cumple la opción “Pendiente”).
+Guarda fecha de creación: fecha_creacion = auto_now_add=True en models.py.
+Endpoint
+
+Ya existía POST /api/pedidos en urls.py.
+Agregué alias para que también funcione POST /pedidos (y variantes con /) en:
+urls.py
+urls.py
+
+
+HU8:
+
+Se guarda método y monto: el modelo Pago tiene metodo y monto en models.py.
+Se asocia a pedido: Pago.pedido es ForeignKey a market.Pedido y el servicio crea el pago con ese pedido en models.py y services.py.
+Tiene estado (Autorizado/Fallido): PaymentService.register_payment() setea estado="AUTORIZADO" o estado="FALLIDO" según el gateway en services.py.
+Endpoint
+
+Ya existía POST /api/pagos.
+Agregué alias para que también funcione POST /pago (y variantes con /) en:
+urls.py
+urls.py
+
+
+
 -->
