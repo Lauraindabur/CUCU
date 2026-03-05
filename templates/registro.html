@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    :root {
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
+      --border: color-mix(in srgb, CanvasText 12%, Canvas);
+      --card: color-mix(in srgb, CanvasText 4%, Canvas);
+      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
+      --radius: 14px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: Canvas;
+      background: color-mix(in srgb, LinkText 12%, Canvas);
+      color: var(--fg);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    a { color: LinkText; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px; }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    .hint { margin: 6px 0 0; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    form { display: grid; gap: var(--gap); margin-top: 10px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: var(--fg);
+      outline: none;
+    }
+    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.03); }
+    .out {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
+    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; filter: brightness(1.03); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Registro</h1>
+        <p class="hint">Crea tu cuenta para continuar.</p>
+      </div>
+      <a class="btn" href="/">Inicio</a>
+    </div>
+
+    <section class="card">
+      <form id="form">
+        <label>
+          Nombre
+          <input name="nombre" required autocomplete="name" placeholder="Tu nombre" />
+        </label>
+        <div class="row">
+          <label>
+            Email
+            <input name="email" type="email" required autocomplete="email" placeholder="correo@ejemplo.com" />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" required autocomplete="new-password" placeholder="Mínimo 6 caracteres" />
+          </label>
+        </div>
+        <button type="submit">Registrar</button>
+      </form>
+
+      <div class="actions" id="actions" hidden>
+        <a class="btn" id="goLogin" href="/ui/login/">Continuar a Login</a>
+      </div>
+
+      <pre id="out" class="out" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script>
+    const out = document.getElementById('out');
+    const actions = document.getElementById('actions');
+    const goLogin = document.getElementById('goLogin');
+
+    // Si venimos desde Pedido/Pago, preservamos destino
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next') || '';
+
+    // Prefill si vienes de “volver atrás”
+    const lastEmail = localStorage.getItem('last_email');
+    if (lastEmail) {
+      const emailInput = document.querySelector('input[name="email"]');
+      if (emailInput && !emailInput.value) emailInput.value = lastEmail;
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.classList.remove('ok', 'err');
+      out.textContent = 'Procesando...';
+      actions.hidden = true;
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      // Guardamos el email para el siguiente paso (login)
+      if (data.email) localStorage.setItem('last_email', String(data.email));
+
+      const res = await fetch('/api/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      out.classList.add(res.ok ? 'ok' : 'err');
+      out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
+
+      if (res.ok) {
+        // Flujo realista: tras registro, ir a login y prellenar email
+        const email = encodeURIComponent(String(data.email || ''));
+        goLogin.href = next
+          ? `/ui/login/?email=${email}&next=${encodeURIComponent(next)}`
+          : `/ui/login/?email=${email}`;
+        actions.hidden = false;
+        // Auto-continue suave (sin animaciones): 700ms
+        setTimeout(() => {
+          window.location.href = goLogin.href;
+        }, 700);
+      }
+    });
+  </script>
+</body>
+</html>
