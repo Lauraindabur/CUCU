@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registrar Pago</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    :root {
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
+      --border: color-mix(in srgb, CanvasText 12%, Canvas);
+      --card: color-mix(in srgb, CanvasText 4%, Canvas);
+      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
+      --radius: 14px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: Canvas;
+      background: color-mix(in srgb, LinkText 12%, Canvas);
+      color: var(--fg);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    a { color: LinkText; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 28px 16px; }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    .hint { margin: 6px 0 0; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    form { display: grid; gap: var(--gap); margin-top: 10px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: var(--fg);
+      outline: none;
+    }
+    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.03); }
+    .out {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
+    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; filter: brightness(1.03); }
+    .note {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .steps a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: inherit;
+      text-decoration: none;
+    }
+    .steps a:hover { text-decoration: none; filter: brightness(1.03); }
+    .steps .active a {
+      color: var(--fg);
+      border-color: color-mix(in srgb, LinkText 40%, var(--border));
+    }
+    .steps .done a { color: var(--fg); }
+    .pill {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .done .pill {
+      border-color: color-mix(in srgb, Green 40%, var(--border));
+      color: color-mix(in srgb, Green 55%, var(--fg));
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .summary {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      display: grid;
+      gap: 8px;
+    }
+    .items {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .summary strong { color: var(--fg); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Registrar Pago</h1>
+        <p class="hint">Registra un pago asociado a un pedido.</p>
+      </div>
+      <a class="btn" href="/">Inicio</a>
+    </div>
+
+    <section class="card">
+      <form id="form">
+        <div class="row">
+          <label>
+            Pedido ID
+            <input name="pedido_id" type="number" required inputmode="numeric" placeholder="Se asigna automáticamente" readonly />
+          </label>
+          <label>
+            Monto
+            <input name="monto" type="number" step="0.01" required inputmode="decimal" placeholder="Ej: 12.50" readonly />
+          </label>
+        </div>
+        <label>
+          Método
+          <input name="metodo" placeholder="efectivo | tarjeta" required autocomplete="off" />
+        </label>
+        <button type="submit">Registrar pago</button>
+      </form>
+
+      <div id="summary" class="summary" hidden>
+        <div><strong>Total del pedido:</strong> <span id="pedidoTotal">-</span></div>
+        <div><strong>Items:</strong></div>
+        <ul id="pedidoItems" class="items"></ul>
+      </div>
+
+      <div class="note">
+        El <strong>Pedido ID</strong> y el <strong>monto</strong> se toman del carrito automáticamente.
+        Métodos soportados (demo): <code>efectivo</code> o <code>tarjeta</code>.
+      </div>
+
+      <div class="actions" id="actions" hidden>
+        <a class="btn" href="/">Volver al inicio</a>
+        <a class="btn" href="/ui/pedido/">Crear otro pedido</a>
+      </div>
+
+      <pre id="out" class="out" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script>
+    const out = document.getElementById('out');
+    const actions = document.getElementById('actions');
+    const summary = document.getElementById('summary');
+    const pedidoTotal = document.getElementById('pedidoTotal');
+    const pedidoItems = document.getElementById('pedidoItems');
+
+    // Flujo natural: si no hay sesión, vuelve a Login
+    const bootToken = localStorage.getItem('token');
+    if (!bootToken) {
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/ui/login/?next=${next}`;
+    }
+
+    // Prefill pedido_id desde querystring o localStorage
+    const params = new URLSearchParams(window.location.search);
+    const qsPedidoId = params.get('pedido_id');
+    const lastPedidoId = localStorage.getItem('last_pedido_id');
+    const pedidoInput = document.querySelector('input[name="pedido_id"]');
+    const montoInput = document.querySelector('input[name="monto"]');
+    if (pedidoInput && !pedidoInput.value) {
+      pedidoInput.value = qsPedidoId || lastPedidoId || '';
+    }
+
+    function formatMoney(value) {
+      const n = Number(value || 0);
+      return n.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+    }
+
+    async function hydrateFromPedidoId(pedidoId) {
+      summary.hidden = true;
+      pedidoItems.innerHTML = '';
+      pedidoTotal.textContent = '-';
+      montoInput.value = '';
+
+      if (!pedidoId) return;
+
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`/api/pedidos/${encodeURIComponent(String(pedidoId))}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        out.classList.remove('ok');
+        out.classList.add('err');
+        out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
+        return;
+      }
+
+      const total = Number(json.total || 0);
+      montoInput.value = String(total);
+      pedidoTotal.textContent = formatMoney(total);
+      const items = Array.isArray(json.items) ? json.items : [];
+      pedidoItems.innerHTML = items.map((it) => {
+        const title = it?.publicacion?.titulo || `Publicación #${it?.publicacion?.id || ''}`;
+        const qty = Number(it?.cantidad || 0);
+        const pu = Number(it?.precio_unitario || 0);
+        return `<li>${title} — ${qty} × ${formatMoney(pu)}</li>`;
+      }).join('') || '<li>Sin items</li>';
+
+      summary.hidden = false;
+    }
+
+    hydrateFromPedidoId(pedidoInput.value);
+    pedidoInput.addEventListener('change', () => hydrateFromPedidoId(pedidoInput.value));
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.classList.remove('ok', 'err');
+      out.textContent = 'Procesando...';
+      actions.hidden = true;
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        out.classList.add('err');
+        out.textContent = 'No hay sesión. Redirigiendo a Login...';
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        setTimeout(() => { window.location.href = `/ui/login/?next=${next}`; }, 400);
+        return;
+      }
+
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      data.pedido_id = Number(data.pedido_id);
+      data.monto = Number(data.monto);
+      if (data.pedido_id) localStorage.setItem('last_pedido_id', String(data.pedido_id));
+
+      if (!data.monto || data.monto <= 0) {
+        out.classList.add('err');
+        out.textContent = 'No se pudo determinar el monto del pedido. Revisa el Pedido ID.';
+        return;
+      }
+
+      const res = await fetch('/api/pagos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      out.classList.add(res.ok ? 'ok' : 'err');
+      out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
+
+      if (res.ok) {
+        actions.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

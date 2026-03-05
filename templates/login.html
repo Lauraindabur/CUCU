@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    :root {
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
+      --border: color-mix(in srgb, CanvasText 12%, Canvas);
+      --card: color-mix(in srgb, CanvasText 4%, Canvas);
+      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
+      --radius: 14px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: Canvas;
+      background: color-mix(in srgb, LinkText 12%, Canvas);
+      color: var(--fg);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    a { color: LinkText; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px; }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    .hint { margin: 6px 0 0; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    form { display: grid; gap: var(--gap); margin-top: 10px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: var(--fg);
+      outline: none;
+    }
+    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.03); }
+    .out {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
+    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .token {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      overflow: hidden;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 6%, Canvas);
+      color: var(--fg);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; filter: brightness(1.03); }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .steps a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, CanvasText 2%, Canvas);
+      color: inherit;
+      text-decoration: none;
+    }
+    .steps a:hover { text-decoration: none; filter: brightness(1.03); }
+    .steps .active a {
+      color: var(--fg);
+      border-color: color-mix(in srgb, LinkText 40%, var(--border));
+    }
+    .steps .done a { color: var(--fg); }
+    .pill {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .done .pill {
+      border-color: color-mix(in srgb, Green 40%, var(--border));
+      color: color-mix(in srgb, Green 55%, var(--fg));
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Login</h1>
+        <p class="hint">Inicia sesión para continuar.</p>
+      </div>
+      <a class="btn" href="/">Inicio</a>
+    </div>
+
+    <section class="card">
+      <form id="form">
+        <label>
+          Email
+          <input name="email" type="email" required autocomplete="email" placeholder="correo@ejemplo.com" />
+        </label>
+        <label>
+          Password
+          <input name="password" type="password" required autocomplete="current-password" placeholder="Tu contraseña" />
+        </label>
+        <button type="submit">Entrar</button>
+      </form>
+
+      <pre id="out" class="out" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script>
+    const out = document.getElementById('out');
+
+    // Prefill email: querystring -> localStorage -> vacío
+    const params = new URLSearchParams(window.location.search);
+    const qsEmail = params.get('email');
+    const next = params.get('next') || '';
+    const savedEmail = localStorage.getItem('last_email');
+    const emailInput = document.querySelector('input[name="email"]');
+    if (emailInput && !emailInput.value) {
+      emailInput.value = qsEmail || savedEmail || '';
+    }
+
+    // Si ya hay sesión, no mostrar login: continuar directo
+    const existingToken = localStorage.getItem('token');
+    if (existingToken) {
+      window.location.href = next || '/ui/pedido/';
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.classList.remove('ok', 'err');
+      out.textContent = 'Procesando...';
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      if (data.email) localStorage.setItem('last_email', String(data.email));
+
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json && typeof json === 'object') {
+        // API devuelve JWT: { access, refresh, user }
+        if (json.access) localStorage.setItem('token', String(json.access));
+        if (json.refresh) localStorage.setItem('refresh', String(json.refresh));
+      }
+
+      // No mostrar el token en pantalla
+      const safeBody = (res.ok && json && typeof json === 'object')
+        ? {
+            ...json,
+            ...(json.access ? { access: '[oculto]' } : {}),
+            ...(json.refresh ? { refresh: '[oculto]' } : {}),
+          }
+        : json;
+      out.classList.add(res.ok ? 'ok' : 'err');
+      out.textContent = JSON.stringify({ status: res.status, body: safeBody }, null, 2);
+
+      if (res.ok && json && typeof json === 'object' && json.access) {
+        // Flujo natural: tras login, continuar al destino
+        setTimeout(() => {
+          window.location.href = next || '/ui/pedido/';
+        }, 700);
+      }
+    });
+  </script>
+</body>
+</html>

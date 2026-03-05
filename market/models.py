@@ -38,3 +38,28 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.estado}"
+
+
+class PedidoItem(models.Model):
+    pedido = models.ForeignKey(
+        "market.Pedido",
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+
+    publicacion = models.ForeignKey(
+        "market.Publicacion",
+        on_delete=models.CASCADE,
+        related_name="pedido_items",
+    )
+
+    cantidad = models.PositiveIntegerField(default=1)
+    precio_unitario = models.FloatField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["pedido", "publicacion"], name="uniq_pedido_publicacion"),
+        ]
+
+    def __str__(self):
+        return f"PedidoItem #{self.id} (Pedido {self.pedido_id})"
