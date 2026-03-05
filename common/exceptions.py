@@ -16,3 +16,7 @@ class ValidationError(DomainError):
 
 class AuthenticationError(DomainError):
     """Represents invalid credentials/authentication failure (HTTP 401)."""
+
+class PermissionDeniedError(Exception):
+    """Excepción para denegar permisos"""
+    pass
