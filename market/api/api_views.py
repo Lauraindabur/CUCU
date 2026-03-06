@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+
 from .serializers import (
     PedidoCreateInputSerializer,
     PedidoOutputSerializer,
     PublicacionOutputSerializer,
 )
-from .services import AcceptOrderService, CatalogService, OrderService
+from ..domain.services import AcceptOrderService, CatalogService, OrderService
 
 
 class PedidoCreateAPIView(APIView):
@@ -66,3 +67,4 @@ class PedidoAceptarAPIView(APIView):
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(PedidoOutputSerializer(pedido).data, status=status.HTTP_200_OK)
+

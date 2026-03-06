@@ -3,14 +3,13 @@ from django.utils import timezone
 from common.exceptions import NotFoundError, ValidationError
 
 from market.models import Pedido
-from transactions.builders import ensure_transaccion_for_pedido
+from transactions.domain.builders import ensure_transaccion_for_pedido
 
-from .gateways import PaymentGatewayFactory
-from .models import Pago
+from ..infra.gateways import PaymentGatewayFactory
+from ..models import Pago
 
 
 class PaymentService:
-
     def __init__(
         self,
         *,
@@ -26,7 +25,6 @@ class PaymentService:
         except Pedido.DoesNotExist as exc:
             raise NotFoundError("Pedido no encontrado") from exc
 
-        # Validación básica de ownership
         if pedido.usuario_id != user.id:
             raise ValidationError("No puedes pagar un pedido que no es tuyo")
 
@@ -38,7 +36,6 @@ class PaymentService:
             monto_to_charge = expected_monto
         else:
             provided = float(monto)
-            # Evita manipulación: si envían monto, debe coincidir con el total
             if abs(provided - expected_monto) > 0.01:
                 raise ValidationError("El monto no coincide con el total del pedido")
             monto_to_charge = expected_monto
@@ -58,3 +55,4 @@ class PaymentService:
             self._ensure_transaccion(pedido)
 
         return pago
+

@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from common.exceptions import AuthenticationError, ConflictError, ValidationError
 
-from .models import User
+from ..models import User
 
 
 @dataclass(frozen=True)
@@ -19,7 +19,6 @@ class LoginResult:
 
 
 class AccountService:
-
     def __init__(
         self,
         *,
@@ -47,7 +46,6 @@ class AccountService:
         try:
             user.save()
         except IntegrityError as exc:
-            # Covers race conditions on unique constraints (email/username)
             raise ConflictError("El email ya está registrado") from exc
 
         return user
@@ -63,3 +61,4 @@ class AccountService:
 
         refresh = self._refresh_token_class.for_user(user)
         return LoginResult(access=str(refresh.access_token), refresh=str(refresh), user=user)
+

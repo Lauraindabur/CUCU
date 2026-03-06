@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 
 from common.exceptions import ConflictError, NotFoundError, ValidationError
 
-from .api.serializers import NotificacionSerializer
-from .services import NotificacionService
+from .serializers import NotificacionSerializer
+from ..domain.services import NotificacionService
 
 
 class MarcarNotificacionLeidaView(APIView):
@@ -40,3 +40,4 @@ class MisNotificacionesView(APIView):
         notificaciones = service.obtener_usuario(request.user)
         serializer = NotificacionSerializer(notificaciones, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

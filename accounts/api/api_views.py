@@ -5,12 +5,8 @@ from rest_framework.views import APIView
 
 from common.exceptions import AuthenticationError, ConflictError, ValidationError
 
-from .serializers import (
-    LoginInputSerializer,
-    RegisterInputSerializer,
-    UserOutputSerializer,
-)
-from .services import AccountService
+from .serializers import LoginInputSerializer, RegisterInputSerializer, UserOutputSerializer
+from ..domain.services import AccountService
 
 
 class RegisterAPIView(APIView):
@@ -52,3 +48,4 @@ class LoginAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+

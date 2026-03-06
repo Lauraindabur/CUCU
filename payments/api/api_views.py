@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from common.exceptions import NotFoundError, ValidationError
 
 from .serializers import PagoCreateInputSerializer, PagoOutputSerializer
-from .services import PaymentService
+from ..domain.services import PaymentService
 
 
 class PagoCreateAPIView(APIView):
@@ -24,3 +24,4 @@ class PagoCreateAPIView(APIView):
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(PagoOutputSerializer(pago).data, status=status.HTTP_201_CREATED)
+

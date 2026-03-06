@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User
+from ..models import User
 
 
 class RegisterInputSerializer(serializers.Serializer):
@@ -28,3 +28,4 @@ class UserOutputSerializer(serializers.ModelSerializer):
             "total_compras",
         ]
         read_only_fields = fields
+
