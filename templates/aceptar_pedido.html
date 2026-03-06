@@ -142,12 +142,18 @@
           Pedido ID
           <input name="pedido_id" type="number" required inputmode="numeric" placeholder="Ej: 5" />
         </label>
-        <button type="submit" id="submitBtn">Aceptar pedido</button>
+        <button type="submit">Buscar pedido</button>
       </form>
 
-      <!-- Resumen del pedido cargado -->
+      <!-- Confirmación antes de aceptar  -->
+      <div id="confirm" class="summary" hidden>
+        <div>¿Aceptar el pedido <strong id="confirmId"></strong>?</div>
+        <button type="button" id="aceptarBtn"> Aceptar pedido</button>
+      </div>
+
+      <!-- Resumen del pedido luego de aceptar -->
       <div id="summary" class="summary" hidden>
-        <div><strong>Estado actual:</strong> <span id="pedidoEstado">-</span></div>
+        <div><strong>Estado:</strong> <span id="pedidoEstado">-</span></div>
         <div><strong>Teléfono:</strong> <span id="pedidoTel">-</span></div>
         <div><strong>Total:</strong> <span id="pedidoTotal">-</span></div>
       </div>
@@ -169,6 +175,7 @@
   <script>
     const out = document.getElementById('out');
     const actions = document.getElementById('actions');
+    const confirm = document.getElementById('confirm');
     const summary = document.getElementById('summary');
     const pedidoEstado = document.getElementById('pedidoEstado');
     const pedidoTel = document.getElementById('pedidoTel');
@@ -191,33 +198,24 @@
       return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
     }
 
-    // Cargar resumen del pedido al cambiar el ID
-    async function loadPedido(pedidoId) {
-      summary.hidden = true;
-      const t = localStorage.getItem('token');  
-      if (!pedidoId || !t) return;
-
-      const res = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}`, {
-        headers: { 'Authorization': `Bearer ${t}` },
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) return;
-
-      const estadoText = (json.estado || '').toUpperCase();
-      pedidoEstado.innerHTML = `<span class="badge ${estadoText === 'PENDIENTE' ? 'pendiente' : 'aceptado'}">${estadoText}</span>`;
-      pedidoTel.textContent = json.telefono || '-';
-      pedidoTotal.textContent = formatMoney(json.total);
-      summary.hidden = false;
-    }
-
-    pedidoInput.addEventListener('change', () => loadPedido(pedidoInput.value));
-    if (qsPedidoId) loadPedido(qsPedidoId);
-
-    document.getElementById('form').addEventListener('submit', async (e) => {
+    // Paso 1: al enviar el form solo muestra el panel de confirmación (sin llamar GET)
+    document.getElementById('form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const pedidoId = pedidoInput.value;
+      if (!pedidoId) return;
+      out.classList.remove('ok', 'err');
+      out.textContent = '';
+      summary.hidden = true;
+      actions.hidden = true;
+      document.getElementById('confirmId').textContent = `#${pedidoId}`;
+      confirm.hidden = false;
+    });
+
+    // Paso 2: al hacer clic en Aceptar hace el PATCH
+    document.getElementById('aceptarBtn').addEventListener('click', async () => {
+      confirm.hidden = true;
       out.classList.remove('ok', 'err');
       out.textContent = 'Procesando...';
-      actions.hidden = true;
 
       const t = localStorage.getItem('token');
       if (!t) {
@@ -228,12 +226,6 @@
       }
 
       const pedidoId = pedidoInput.value;
-      if (!pedidoId) {
-        out.classList.add('err');
-        out.textContent = 'Ingresa un Pedido ID.';
-        return;
-      }
-
       const res = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}/aceptar/`, {
         method: 'PATCH',
         headers: {
@@ -248,7 +240,6 @@
 
       if (res.ok) {
         actions.hidden = false;
-        // Llenar resumen directo desde la respuesta del PATCH
         const estadoText = (json.estado || 'ACEPTADO').toUpperCase();
         pedidoEstado.innerHTML = `<span class="badge aceptado">${estadoText}</span>`;
         pedidoTel.textContent = json.telefono || '-';
