@@ -19,8 +19,17 @@ class LoginResult:
 
 
 class AccountService:
-    @staticmethod
-    def register_user(*, nombre: str, email: str, password: str) -> User:
+
+    def __init__(
+        self,
+        *,
+        authenticate_func=authenticate,
+        refresh_token_class=RefreshToken,
+    ):
+        self._authenticate = authenticate_func
+        self._refresh_token_class = refresh_token_class
+
+    def register_user(self, *, nombre: str, email: str, password: str) -> User:
         email_normalized = (email or "").strip().lower()
         if not email_normalized:
             raise ValidationError("Email es requerido")
@@ -43,15 +52,14 @@ class AccountService:
 
         return user
 
-    @staticmethod
-    def login(*, email: str, password: str) -> LoginResult:
+    def login(self, *, email: str, password: str) -> LoginResult:
         email_normalized = (email or "").strip().lower()
-        user = authenticate(username=email_normalized, password=password)
+        user = self._authenticate(username=email_normalized, password=password)
         if user is None:
             raise AuthenticationError("Credenciales inválidas")
 
         if not user.is_active:
             raise AuthenticationError("Usuario inactivo")
 
-        refresh = RefreshToken.for_user(user)
+        refresh = self._refresh_token_class.for_user(user)
         return LoginResult(access=str(refresh.access_token), refresh=str(refresh), user=user)

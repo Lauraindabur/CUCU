@@ -10,8 +10,17 @@ from .models import Pago
 
 
 class PaymentService:
-    @staticmethod
-    def register_payment(*, user, pedido_id: int, metodo: str, monto: float | None = None) -> Pago:
+
+    def __init__(
+        self,
+        *,
+        gateway_factory=PaymentGatewayFactory,
+        ensure_transaccion_func=ensure_transaccion_for_pedido,
+    ):
+        self._gateway_factory = gateway_factory
+        self._ensure_transaccion = ensure_transaccion_func
+
+    def register_payment(self, *, user, pedido_id: int, metodo: str, monto: float | None = None) -> Pago:
         try:
             pedido = Pedido.objects.get(id=pedido_id)
         except Pedido.DoesNotExist as exc:
@@ -34,7 +43,7 @@ class PaymentService:
                 raise ValidationError("El monto no coincide con el total del pedido")
             monto_to_charge = expected_monto
 
-        gateway = PaymentGatewayFactory.get_gateway(method=metodo)
+        gateway = self._gateway_factory.get_gateway(method=metodo)
         authorized = gateway.authorize(amount=float(monto_to_charge))
 
         pago = Pago.objects.create(
@@ -46,6 +55,6 @@ class PaymentService:
         )
 
         if authorized:
-            ensure_transaccion_for_pedido(pedido)
+            self._ensure_transaccion(pedido)
 
         return pago

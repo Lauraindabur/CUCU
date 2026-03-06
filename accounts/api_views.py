@@ -22,7 +22,7 @@ class RegisterAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            user = AccountService.register_user(**serializer.validated_data)
+            user = AccountService().register_user(**serializer.validated_data)
         except ConflictError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
         except (ValidationError, IntegrityError) as exc:
@@ -40,7 +40,7 @@ class LoginAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            result = AccountService.login(**serializer.validated_data)
+            result = AccountService().login(**serializer.validated_data)
         except AuthenticationError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
 

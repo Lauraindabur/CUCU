@@ -1,34 +1,38 @@
 from .infra.factories import NotificacionFactory
 from .models import Notificacion
 
+from common.exceptions import ConflictError, NotFoundError
+
 
 class NotificacionService:
 
-    @staticmethod
-    def enviar(usuario, tipo, mensaje):
+    def __init__(self, *, factory=NotificacionFactory):
+        self._factory = factory
 
-        return NotificacionFactory.crear(
+    def enviar(self, usuario, tipo, mensaje):
+        return self._factory.crear(
             usuario=usuario,
             tipo=tipo,
             mensaje=mensaje
         )
 
 
-    @staticmethod
-    def marcar_leida(notificacion_id):
+    def marcar_leida(self, notificacion_id):
 
-        notificacion = Notificacion.objects.get(id=notificacion_id)
+        try:
+            notificacion = Notificacion.objects.get(id=notificacion_id)
+        except Notificacion.DoesNotExist as exc:
+            raise NotFoundError("Notificación no encontrada") from exc
 
         if notificacion.leida:
-            raise ValueError("La notificación ya fue leída")
+            raise ConflictError("La notificación ya fue leída")
 
         notificacion.leida = True
-        notificacion.save()
+        notificacion.save(update_fields=["leida"])
 
         return notificacion
 
 
-    @staticmethod
-    def obtener_usuario(usuario):
+    def obtener_usuario(self, usuario):
 
         return Notificacion.objects.filter(usuario=usuario).order_by("-fecha_envio")
