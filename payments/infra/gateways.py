@@ -19,7 +19,6 @@ class CashGateway(PaymentGateway):
 @dataclass(frozen=True)
 class CardGateway(PaymentGateway):
     def authorize(self, *, amount: float) -> bool:
-        # Simulación simple de autorización
         return 0 < amount <= 1_000_000
 
 
@@ -32,3 +31,4 @@ class PaymentGatewayFactory:
         if m in {"card", "tarjeta"}:
             return CardGateway()
         raise ValidationError("Método de pago no soportado")
+

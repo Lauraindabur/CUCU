@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Pago
+from ..models import Pago
 
 
 class PagoCreateInputSerializer(serializers.Serializer):
@@ -21,3 +21,4 @@ class PagoOutputSerializer(serializers.ModelSerializer):
             "pedido_id",
         ]
         read_only_fields = fields
+

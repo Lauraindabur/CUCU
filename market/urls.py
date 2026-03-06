@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .api_views import (
+from .api.api_views import (
     PedidoAceptarAPIView,
     PedidoCreateAPIView,
     PedidoDetailAPIView,
@@ -18,3 +18,4 @@ urlpatterns = [
     path("pedidos/<int:pedido_id>/aceptar/", PedidoAceptarAPIView.as_view()),
 
 ]
+

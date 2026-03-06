@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from common.exceptions import NotFoundError, ValidationError
 
-from .models import Pedido, PedidoItem, Publicacion
+from ..models import Pedido, PedidoItem, Publicacion
 
 
 @dataclass
@@ -55,7 +55,6 @@ class PedidoBuilder:
         if not publicacion_ids:
             raise ValidationError("Debes seleccionar al menos una publicación")
 
-        # Contabilizar cantidades (si vienen repetidas)
         counts: dict[int, int] = {}
         for pid in publicacion_ids:
             pid_int = int(pid)
@@ -77,7 +76,6 @@ class PedidoBuilder:
         if computed_total <= 0:
             raise ValidationError("El total debe ser mayor a 0")
 
-        # Por compatibilidad, mantenemos el FK `publicacion` en Pedido como la primera del carrito
         first_publicacion = publicaciones_by_id[next(iter(counts.keys()))]
 
         pedido = Pedido.objects.create(
@@ -97,3 +95,4 @@ class PedidoBuilder:
             )
 
         return pedido
+

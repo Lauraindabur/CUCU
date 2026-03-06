@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from common.exceptions import ConflictError
 
-from .models import Transaccion
+from ..models import Transaccion
 
 
 @dataclass
@@ -46,3 +46,4 @@ def ensure_transaccion_for_pedido(pedido) -> Transaccion:
         return pedido.transaccion
 
     return TransaccionBuilder().for_pedido(pedido).build()
+
