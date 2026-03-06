@@ -17,7 +17,7 @@ class PagoCreateAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            pago = PaymentService.register_payment(user=request.user, **serializer.validated_data)
+            pago = PaymentService().register_payment(user=request.user, **serializer.validated_data)
         except NotFoundError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_404_NOT_FOUND)
         except ValidationError as exc:

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MisNotificacionesView, MarcarNotificacionLeidaView
+from .api_views import MisNotificacionesView, MarcarNotificacionLeidaView
 
 urlpatterns = [
     path("notificaciones/", MisNotificacionesView.as_view()),

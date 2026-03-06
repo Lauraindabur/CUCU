@@ -1,6 +1,8 @@
 import os
 from ..models import Notificacion
 
+from common.exceptions import ValidationError
+
 
 class NotificacionFactory:
 
@@ -15,7 +17,7 @@ class NotificacionFactory:
     def crear(usuario, tipo, mensaje):
 
         if tipo not in NotificacionFactory.tipos:
-            raise ValueError("Tipo de notificación no válido")
+            raise ValidationError("Tipo de notificación no válido")
 
         return Notificacion.objects.create(
             usuario=usuario,
