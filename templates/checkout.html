@@ -1,0 +1,1374 @@
+{% extends "base_app.html" %}
+
+{% block title %}Checkout | CUCU{% endblock %}
+{% block eyebrow %}Checkout{% endblock %}
+{% block page_title %}Finaliza tu <span>pedido</span>{% endblock %}
+{% block page_lead %}Ingresa tus datos de entrega y el método de pago.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-secondary" href="/ui/carrito/">Volver al carrito</a>
+  <a class="btn btn-secondary" href="/ui/pedido/">Seguir comprando</a>
+{% endblock %}
+{% block hero_points %}{% endblock %}
+
+{% block head_extra %}
+  <style>
+    .page-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-panel {
+      display: none;
+    }
+
+    .section-title,
+    .section-hint {
+      display: none;
+    }
+
+    .surface {
+      padding-top: 0;
+    }
+
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 22px;
+      padding: 0 22px 22px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 18px 54px rgba(31, 36, 48, 0.06);
+      padding: 18px;
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    #checkoutForm {
+      display: grid;
+      gap: 16px;
+      margin: 0;
+    }
+
+    .section-label {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .payment-list {
+      display: grid;
+      border: 1px solid rgba(31, 36, 48, 0.10);
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .payment-option {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .payment-option:last-child { border-bottom: 0; }
+
+    .payment-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pay-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .pay-icon {
+      width: 36px;
+      height: 26px;
+      border-radius: 10px;
+      border: 1px solid rgba(31, 36, 48, 0.12);
+      background: rgba(31, 36, 48, 0.03);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .pay-sub {
+      margin: 2px 0 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .pay-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .pay-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 36, 48, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: transparent;
+    }
+
+    .payment-option.selected {
+      background: linear-gradient(90deg, rgba(30, 174, 122, 0.12), rgba(255, 255, 255, 0.9));
+      border-left: 3px solid rgba(30, 174, 122, 0.55);
+      padding-left: 11px;
+    }
+
+    .payment-option.selected .pay-check {
+      border-color: rgba(30, 174, 122, 0.35);
+      background: rgba(30, 174, 122, 0.12);
+      color: var(--green);
+    }
+
+    .payment-expand {
+      padding: 12px 14px 16px;
+      border-top: 1px solid rgba(31, 36, 48, 0.08);
+      background: rgba(31, 36, 48, 0.02);
+    }
+
+    .cash-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 170px;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .money-field {
+      position: relative;
+    }
+
+    .money-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 900;
+      pointer-events: none;
+    }
+
+    .money-field input {
+      padding-left: 34px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      font-weight: 900;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      padding: 0;
+    }
+
+    .checkout-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .checkout-actions .btn-primary {
+      min-height: 56px;
+      border-radius: 18px;
+    }
+
+    .checkout-actions .btn-secondary {
+      min-height: 56px;
+      border-radius: 18px;
+      padding: 0 22px;
+    }
+
+    .summary-lines {
+      display: grid;
+      gap: 10px;
+      padding: 6px 0 14px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 800;
+      color: #4e515a;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid rgba(31, 36, 48, 0.08);
+      border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .items-box {
+      margin: 14px 0;
+      padding: 14px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      border-radius: 18px;
+      background: rgba(31, 36, 48, 0.02);
+    }
+
+    .items-mini {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .items-mini li { margin: 6px 0; }
+
+    .summary-cta {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .secure {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .brands {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-weight: 900;
+      color: #2f3642;
+    }
+
+    .delivery-note {
+      margin: -4px 0 2px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .delivery-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .address-box {
+      position: relative;
+    }
+
+    .address-suggestions {
+      display: none;
+      margin-top: 8px;
+      padding: 6px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 14px 34px rgba(36, 38, 45, 0.08);
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .address-suggestions.is-open {
+      display: grid;
+      gap: 4px;
+    }
+
+    .address-suggestion-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 10px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    .address-suggestion-item:hover,
+    .address-suggestion-item:focus {
+      outline: none;
+      background: rgba(31, 36, 48, 0.04);
+    }
+
+    .address-suggestion-item.is-active {
+      background: rgba(255, 106, 26, 0.10);
+      box-shadow: inset 0 0 0 1px rgba(255, 106, 26, 0.18);
+    }
+
+    .address-suggestion-title {
+      display: block;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .address-suggestion-subtitle {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .field-help {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    textarea.checkout-textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    @media (max-width: 980px) {
+      .checkout-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="checkout-layout">
+    <section class="panel" aria-label="Datos de checkout">
+      <h3>Datos de entrega</h3>
+      <p class="delivery-note">Confirmas tus datos, tu dirección y el método de pago. Si la dirección se puede resolver rápido o eliges una sugerencia, guardamos coordenadas para que el seguimiento cargue más ágil.</p>
+      <form id="checkoutForm">
+        <div class="row">
+          <label>
+            Nombre
+            <input name="nombre" required autocomplete="given-name" placeholder="Ej: Laura" />
+          </label>
+          <label>
+            Apellidos
+            <input name="apellidos" required autocomplete="family-name" placeholder="Ej: Indabur" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label>
+            Teléfono
+            <input name="telefono" required autocomplete="tel" inputmode="tel" placeholder="Ej: 3001234567" />
+          </label>
+          <div></div>
+        </div>
+
+        <div class="delivery-stack">
+          <label>
+            Dirección de entrega
+            <div class="address-box">
+              <input id="direccionBaseInput" name="direccion_base" required autocomplete="off" placeholder="Ej: Calle 5 #80C-125, Medellín o Eiffel Tower, Paris" />
+              <div class="address-suggestions" id="checkoutAddressSuggestions" aria-label="Sugerencias globales de dirección"></div>
+            </div>
+            <div class="field-help">Mientras escribes, te mostramos sugerencias globales para que escojas una más precisa.</div>
+          </label>
+
+          <label>
+            Referencias para llegar (opcional)
+            <textarea class="checkout-textarea" name="direccion_detalles" autocomplete="address-line2" placeholder="Ej: Torre 2, apto 1313, portería blanca, al lado de la farmacia"></textarea>
+          </label>
+        </div>
+
+        <div aria-label="Método de pago">
+          <p class="section-label">Método de pago</p>
+
+          <div class="payment-list" id="paymentMethodGroup">
+            <label class="payment-option" data-method="efectivo">
+              <input type="radio" name="metodo" value="efectivo" required />
+              <div class="pay-left">
+                <span class="pay-icon" aria-hidden="true">💵</span>
+                <div>
+                  <div>Efectivo</div>
+                </div>
+              </div>
+              <div class="pay-right">
+                <span class="pay-check" aria-hidden="true">✓</span>
+              </div>
+            </label>
+            <div id="cashSection" class="payment-expand" hidden>
+              <div class="cash-row">
+                <label style="margin:0;">
+                  <span class="section-label" style="text-transform:none; letter-spacing:0; font-size:13px; color:var(--muted);">¿Con cuánto pagas?</span>
+                  <div class="money-field">
+                    <span class="money-prefix">$</span>
+                    <input id="payWithAmount" inputmode="numeric" placeholder="0" />
+                  </div>
+                </label>
+                <label class="toggle">
+                  <span>¿Necesitas cambio?</span>
+                  <input type="checkbox" id="needsChange" />
+                </label>
+              </div>
+              <p class="hint" id="cashHint" style="margin-top: 10px;"></p>
+            </div>
+
+            <label class="payment-option" data-method="tarjeta">
+              <input type="radio" name="metodo" value="tarjeta" required />
+              <div class="pay-left">
+                <span class="pay-icon" aria-hidden="true">💳</span>
+                <div>
+                  <div>Tarjeta</div>
+                  <div class="pay-sub">VISA · Mastercard</div>
+                </div>
+              </div>
+              <div class="pay-right">
+                <span class="pay-check" aria-hidden="true">✓</span>
+              </div>
+            </label>
+            <div id="cardSection" class="payment-expand" hidden>
+              <div class="row">
+                <label>
+                  Nombre en la tarjeta
+                  <input name="card_name" autocomplete="cc-name" placeholder="Ej: LAURA INDABUR" />
+                </label>
+                <label>
+                  Número de tarjeta
+                  <input name="card_number" autocomplete="cc-number" inputmode="numeric" placeholder="Ej: 4111 1111 1111 1111" />
+                </label>
+              </div>
+              <div class="row">
+                <label>
+                  Fecha de expiración
+                  <input name="card_exp" autocomplete="cc-exp" placeholder="MM/AA" />
+                </label>
+                <label>
+                  CVV
+                  <input name="card_cvv" autocomplete="cc-csc" inputmode="numeric" placeholder="Ej: 123" />
+                </label>
+              </div>
+
+              <div class="row">
+                <label>
+                  Tipo de documento
+                  <select name="doc_type">
+                    <option value="cedula">Cédula</option>
+                    <option value="pasaporte">Pasaporte</option>
+                    <option value="nit">NIT</option>
+                  </select>
+                </label>
+                <label>
+                  Número de documento
+                  <input name="doc_number" inputmode="numeric" placeholder="Ej: 123456789" />
+                </label>
+              </div>
+            </div>
+
+            <label class="payment-option" data-method="pse">
+              <input type="radio" name="metodo" value="pse" required />
+              <div class="pay-left">
+                <span class="pay-icon" aria-hidden="true">🏦</span>
+                <div>
+                  <div>PSE</div>
+                  <div class="pay-sub">Pagos Seguros en Línea</div>
+                </div>
+              </div>
+              <div class="pay-right">
+                <span class="pay-check" aria-hidden="true">✓</span>
+              </div>
+            </label>
+            <div id="pseSection" class="payment-expand" hidden>
+              <p class="hint" style="margin: 0;">PSE estará disponible más adelante. Por ahora, selecciona efectivo o tarjeta.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-actions">
+          <button class="btn btn-primary" id="submitBtn" type="submit">Confirmar y pagar</button>
+          <a class="btn btn-secondary" href="/ui/carrito/">Volver</a>
+        </div>
+
+        <pre id="out" class="out" aria-live="polite" style="margin:0;"></pre>
+      </form>
+    </section>
+
+    <aside class="panel" aria-label="Resumen">
+      <h3>Resumen</h3>
+
+      <div class="summary-lines">
+        <div class="summary-line"><span>Subtotal</span><span id="subtotalValue">-</span></div>
+        <div class="summary-line"><span>Envío</span><span id="deliveryValue">-</span></div>
+      </div>
+      <div class="summary-total"><span>Total</span><span id="totalValue">-</span></div>
+
+      <div class="items-box">
+        <ul id="itemsMini" class="items-mini"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <div id="emptyState" class="note" style="margin: 0 22px 22px;" hidden>
+    Tu carrito está vacío. Vuelve a <a href="/ui/pedido/"><strong>Comprar</strong></a> y agrega al menos un producto.
+  </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  const auth = window.CUCUAuth;
+  const tracking = window.CUCUTracking;
+  const DELIVERY_FEE = 5000;
+  const TRACKING_SPEED_MULTIPLIER = 2.25;
+  const TRACKING_WAIT_PICKUP_SECONDS = 5 / TRACKING_SPEED_MULTIPLIER;
+  const TRACKING_SPEED_MPS = 6.5 * TRACKING_SPEED_MULTIPLIER;
+  const TRACKING_FALLBACK_ORIGIN = { lat: 6.208763, lng: -75.565053 };
+  const TRACKING_ROUTE_TIMEOUT_MS = 1200;
+
+  const checkoutForm = document.getElementById('checkoutForm');
+  const emptyState = document.getElementById('emptyState');
+  const out = document.getElementById('out');
+  const submitBtn = document.getElementById('submitBtn');
+
+  const subtotalValue = document.getElementById('subtotalValue');
+  const deliveryValue = document.getElementById('deliveryValue');
+  const totalValue = document.getElementById('totalValue');
+  const itemsMini = document.getElementById('itemsMini');
+
+  const cashSection = document.getElementById('cashSection');
+  const cardSection = document.getElementById('cardSection');
+  const pseSection = document.getElementById('pseSection');
+  const needsChange = document.getElementById('needsChange');
+  const payWithAmount = document.getElementById('payWithAmount');
+  const cashHint = document.getElementById('cashHint');
+  const direccionBaseInput = document.getElementById('direccionBaseInput');
+  const addressSuggestions = document.getElementById('checkoutAddressSuggestions');
+
+  let addressAutocompleteTimer = null;
+  let addressSuggestionItems = [];
+  let selectedAddressSuggestion = null;
+  let highlightedAddressSuggestionIndex = -1;
+  let addressRequestSeq = 0;
+  const addressSuggestionCache = new Map();
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function clearAddressSuggestions() {
+    addressSuggestionItems = [];
+    highlightedAddressSuggestionIndex = -1;
+    if (!addressSuggestions) return;
+    addressSuggestions.innerHTML = '';
+    addressSuggestions.classList.remove('is-open');
+  }
+
+  function syncHighlightedSuggestion() {
+    if (!addressSuggestions) return;
+    const nodes = Array.from(addressSuggestions.querySelectorAll('[data-address-suggestion-index]'));
+    nodes.forEach((node, index) => {
+      const active = index === highlightedAddressSuggestionIndex;
+      node.classList.toggle('is-active', active);
+      node.setAttribute('aria-selected', active ? 'true' : 'false');
+      if (active) {
+        try { node.scrollIntoView({ block: 'nearest' }); } catch {}
+      }
+    });
+  }
+
+  function renderAddressSuggestions(items) {
+    addressSuggestionItems = items;
+    if (!addressSuggestions) return;
+    if (!items.length) {
+      clearAddressSuggestions();
+      return;
+    }
+
+    addressSuggestions.innerHTML = items.map((item, index) => `
+      <button class="address-suggestion-item" type="button" data-address-suggestion-index="${index}" aria-selected="false">
+        <span class="address-suggestion-title">${escapeHtml(item.primary)}</span>
+        <span class="address-suggestion-subtitle">${escapeHtml(item.secondary || item.display_name)}</span>
+      </button>
+    `).join('');
+    highlightedAddressSuggestionIndex = items.length ? 0 : -1;
+    addressSuggestions.classList.add('is-open');
+    syncHighlightedSuggestion();
+  }
+
+  async function fetchAddressSuggestions(query) {
+    const cacheKey = String(query || '').trim().toLowerCase();
+    const cached = addressSuggestionCache.get(cacheKey);
+    if (cached && Array.isArray(cached.items) && (Date.now() - cached.ts) < 60_000) {
+      return cached.items;
+    }
+
+    const seq = ++addressRequestSeq;
+    const url = new URL('/api/geocode/suggest', window.location.origin);
+    url.searchParams.set('q', query);
+    url.searchParams.set('limit', '5');
+
+    let response;
+    let payload;
+    try {
+      response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      payload = await response.json().catch(() => null);
+    } catch {
+      return [];
+    }
+
+    if (seq !== addressRequestSeq || !response?.ok) return [];
+
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    const mapped = items.map((item) => ({
+      display_name: String(item.display_name || '').trim(),
+      primary: String(item.primary || '').trim() || String(item.display_name || '').trim(),
+      secondary: String(item.secondary || '').trim(),
+      latitud: safeNumber(item.latitud),
+      longitud: safeNumber(item.longitud),
+    })).filter((item) => item.display_name);
+
+    addressSuggestionCache.set(cacheKey, { ts: Date.now(), items: mapped });
+    return mapped;
+  }
+
+  function applyAddressSuggestion(suggestion) {
+    if (!suggestion) return;
+    const shortText = String(suggestion.primary || '').trim() || String(suggestion.display_name || '').trim();
+    selectedAddressSuggestion = {
+      display_name: String(suggestion.display_name || '').trim(),
+      shortText,
+      latitud: safeNumber(suggestion.latitud),
+      longitud: safeNumber(suggestion.longitud),
+    };
+    direccionBaseInput.value = shortText;
+    clearAddressSuggestions();
+  }
+
+  function moveAddressSuggestionHighlight(direction) {
+    if (!addressSuggestionItems.length) return;
+    if (highlightedAddressSuggestionIndex < 0) {
+      highlightedAddressSuggestionIndex = 0;
+    } else {
+      highlightedAddressSuggestionIndex = (highlightedAddressSuggestionIndex + direction + addressSuggestionItems.length) % addressSuggestionItems.length;
+    }
+    syncHighlightedSuggestion();
+  }
+
+  function formatMoneyCOP(value) {
+    return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  }
+
+  function safeNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function haversineKm(a, b) {
+    if (!a || !b) return null;
+    const toRad = (x) => (x * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * (Math.sin(dLng / 2) ** 2);
+    return 2 * earthRadiusKm * Math.asin(Math.sqrt(h));
+  }
+
+  function samePoint(a, b) {
+    if (!a || !b) return false;
+    return Math.abs(a.lat - b.lat) < 1e-8 && Math.abs(a.lng - b.lng) < 1e-8;
+  }
+
+  function uniquePoints(points) {
+    const out = [];
+    (points || []).forEach((point) => {
+      if (!point) return;
+      if (!out.some((candidate) => samePoint(candidate, point))) {
+        out.push(point);
+      }
+    });
+    return out;
+  }
+
+  function orderPickupsGreedy(points, start) {
+    const remaining = [...(points || [])];
+    const ordered = [];
+    let current = start;
+
+    while (remaining.length) {
+      let bestIndex = 0;
+      let bestDistance = Infinity;
+      for (let index = 0; index < remaining.length; index += 1) {
+        const distance = haversineKm(current, remaining[index]) ?? Infinity;
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      }
+      const next = remaining.splice(bestIndex, 1)[0];
+      ordered.push(next);
+      current = next;
+    }
+
+    return ordered;
+  }
+
+  function normalizeAddressQuery(address) {
+    let normalized = String(address || '').trim();
+    if (!normalized) return '';
+
+    normalized = normalized.replace(/\s+/g, ' ');
+    normalized = normalized.replace(/^cl\s*/i, 'Calle ');
+    normalized = normalized.replace(/^cal\s*/i, 'Calle ');
+    normalized = normalized.replace(/^cra\s*/i, 'Carrera ');
+    normalized = normalized.replace(/^kr\s*/i, 'Carrera ');
+    normalized = normalized.replace(/^av\s*/i, 'Avenida ');
+
+    const compactPattern = normalized.match(/^(Calle|Carrera)\s*(\d+[A-Za-z]?)\s+(\d+)([A-Za-z])\s*(\d+)$/i);
+    if (compactPattern) {
+      const via = compactPattern[1];
+      const firstNumber = compactPattern[2];
+      const secondNumber = `${String(compactPattern[3] || '')}${String(compactPattern[4] || '').toUpperCase()}`;
+      const thirdNumber = compactPattern[5];
+      normalized = `${via} ${firstNumber} #${secondNumber}-${thirdNumber}`;
+    }
+
+    return normalized;
+  }
+
+  async function geocodeAddressToLatLng(address) {
+    const query = normalizeAddressQuery(address);
+    if (!query) return null;
+
+    try {
+      const response = await fetch(`/api/geocode?direccion_texto=${encodeURIComponent(query)}`, {
+        headers: { Accept: 'application/json' },
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) return null;
+
+      const lat = safeNumber(payload?.latitud);
+      const lng = safeNumber(payload?.longitud);
+      if (lat == null || lng == null) return null;
+      return { lat, lng };
+    } catch {
+      return null;
+    }
+  }
+
+  async function resolveDeliveryCoordinates(baseAddress) {
+    if (selectedAddressSuggestion) {
+      const lat = safeNumber(selectedAddressSuggestion.latitud);
+      const lng = safeNumber(selectedAddressSuggestion.longitud);
+      if (lat != null && lng != null) {
+        return { lat, lng };
+      }
+    }
+
+    return geocodeAddressToLatLng(baseAddress);
+  }
+
+  function resolvePickupPoints(lineItems) {
+    return uniquePoints(
+      (lineItems || [])
+        .map((item) => item?.pickup)
+        .filter((point) => safeNumber(point?.lat) != null && safeNumber(point?.lng) != null)
+        .map((point) => ({ lat: Number(point.lat), lng: Number(point.lng) }))
+    );
+  }
+
+  function buildDraftTrackingPlan(pedidoId, deliveryCoords, lineItems) {
+    if (!pedidoId || !deliveryCoords) return null;
+
+    let pickups = resolvePickupPoints(lineItems);
+    if (!pickups.length) {
+      pickups = [{ ...TRACKING_FALLBACK_ORIGIN }];
+    }
+
+    const firstPickup = pickups[0];
+    const courierStart = { lat: firstPickup.lat + 0.004, lng: firstPickup.lng - 0.003 };
+    pickups = orderPickupsGreedy(pickups, courierStart);
+
+    const segmentPoints = [courierStart, ...pickups, deliveryCoords];
+    const segmentSeconds = [];
+    let totalToLastPickupSeconds = 0;
+
+    for (let index = 0; index < segmentPoints.length - 1; index += 1) {
+      const origin = segmentPoints[index];
+      const target = segmentPoints[index + 1];
+      const km = haversineKm(origin, target) || 0;
+      const seconds = Math.max(10, ((km * 1000) / TRACKING_SPEED_MPS)) / Math.max(1, TRACKING_SPEED_MULTIPLIER);
+      segmentSeconds.push(seconds);
+      if (!samePoint(target, deliveryCoords)) {
+        totalToLastPickupSeconds += seconds;
+      }
+    }
+
+    const totalSimulationSeconds = totalToLastPickupSeconds
+      + TRACKING_WAIT_PICKUP_SECONDS
+      + Number(segmentSeconds[segmentSeconds.length - 1] || 0);
+    const startedAt = Date.now();
+
+    return {
+      startedAt,
+      endsAt: startedAt + (totalSimulationSeconds * 1000),
+      totalSimulationSeconds,
+      totalToLastPickupSeconds,
+      waitPickupSeconds: TRACKING_WAIT_PICKUP_SECONDS,
+      destination: deliveryCoords,
+      courierStart,
+      pickups,
+      segmentPoints,
+      segmentSeconds,
+      roadPath: null,
+      roadLegSeconds: [],
+      roadLegMeters: [],
+      status: 'active',
+      source: 'draft',
+    };
+  }
+
+  function buildCoordsParam(points) {
+    if (!Array.isArray(points) || points.length < 2) return '';
+    return points
+      .filter((point) => point && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng)))
+      .map((point) => `${Number(point.lng).toFixed(6)},${Number(point.lat).toFixed(6)}`)
+      .join(';');
+  }
+
+  async function fetchRoadRoute(points, timeoutMs = TRACKING_ROUTE_TIMEOUT_MS) {
+    if (!Array.isArray(points) || points.length < 2) return null;
+    const coords = buildCoordsParam(points);
+    if (!coords) return null;
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timeoutId = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+
+    try {
+      const result = await auth.authenticatedFetch(`/api/route?coords=${encodeURIComponent(coords)}`, {
+        signal: controller?.signal,
+      });
+      if (!result) return null;
+
+      const { response, payload } = result;
+      if (!response.ok) return null;
+
+      const coordsList = Array.isArray(payload?.geometry) ? payload.geometry : [];
+      if (!coordsList.length) return null;
+
+      const path = coordsList
+        .map((pair) => ({ lng: Number(pair?.[0]), lat: Number(pair?.[1]) }))
+        .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+      if (path.length < 2) return null;
+
+      const legs = Array.isArray(payload?.legs) ? payload.legs : [];
+      return {
+        path,
+        legSeconds: legs.map((leg) => Math.max(10, Number(leg?.duration || 0))),
+        legMeters: legs.map((leg) => Math.max(1, Number(leg?.distance || 0))),
+      };
+    } catch {
+      return null;
+    } finally {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+    }
+  }
+
+  async function enrichTrackingPlanWithRoadRoute(plan, timeoutMs = TRACKING_ROUTE_TIMEOUT_MS) {
+    if (!plan || !Array.isArray(plan.segmentPoints) || plan.segmentPoints.length < 2) return plan;
+
+    const route = await fetchRoadRoute(plan.segmentPoints, timeoutMs);
+    if (!route) return plan;
+
+    return {
+      ...plan,
+      roadPath: route.path,
+      roadLegSeconds: route.legSeconds,
+      roadLegMeters: route.legMeters,
+      source: 'precomputed',
+    };
+  }
+
+  function setOutMessage(message, type = '') {
+    out.classList.remove('ok', 'err');
+    if (type) out.classList.add(type);
+    out.textContent = String(message || '');
+  }
+
+  function extractErrorMessage(payload, fallback) {
+    if (typeof payload?.detail === 'string' && payload.detail.trim()) return payload.detail.trim();
+    if (typeof payload?.message === 'string' && payload.message.trim()) return payload.message.trim();
+    if (typeof fallback === 'string' && fallback.trim()) return fallback.trim();
+    return 'No se pudo completar la solicitud.';
+  }
+
+  function loadSelection() {
+    return window.CUCUStorage?.loadCartSelection?.() || {};
+  }
+
+  function sanitizeSelection(selection) {
+    const safe = {};
+    Object.entries(selection || {}).forEach(([key, value]) => {
+      const id = Number(key);
+      const qty = Math.floor(Number(value || 0));
+      if (!Number.isFinite(id) || id <= 0) return;
+      if (!Number.isFinite(qty) || qty <= 0) return;
+      safe[String(id)] = qty;
+    });
+    return safe;
+  }
+
+  function selectionToPublicacionIds(selection) {
+    const ids = [];
+    Object.entries(selection).forEach(([id, qty]) => {
+      for (let i = 0; i < Number(qty || 0); i += 1) ids.push(Number(id));
+    });
+    return ids;
+  }
+
+  function updateHeaderBadge(selection) {
+    const cartCount = document.getElementById('cartCount');
+    if (!cartCount) return;
+    const count = Object.keys(selection).length;
+    cartCount.textContent = count > 0 ? String(count) : '';
+    cartCount.hidden = count === 0;
+  }
+
+  function clearPublicationCaches() {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key === 'publicaciones_cache' || key.startsWith('pubs_cercanas:')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+    } catch {
+      // ignore cache cleanup errors
+    }
+  }
+
+  let computed = { subtotal: 0, delivery: DELIVERY_FEE, total: DELIVERY_FEE, lineItems: [] };
+  let isCartEmpty = false;
+
+  function loadLastCheckout() {
+    try {
+      const raw = localStorage.getItem('last_checkout') || '{}';
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function hydrateDraft() {
+    const last = loadLastCheckout();
+    if (!last || typeof last !== 'object') return;
+
+    const draft = {
+      nombre: String(last.nombre || '').trim(),
+      apellidos: String(last.apellidos || '').trim(),
+      telefono: String(last.telefono || '').trim(),
+      direccion_base: String(last.direccion_base || '').trim(),
+      direccion_detalles: String(last.direccion_detalles || '').trim(),
+    };
+
+    Object.entries(draft).forEach(([key, value]) => {
+      if (!value) return;
+      const field = checkoutForm.elements.namedItem(key);
+      if (field && !String(field.value || '').trim()) {
+        field.value = value;
+      }
+    });
+  }
+
+  async function hydrateSummary() {
+    setOutMessage('');
+    submitBtn.disabled = false;
+
+    const selection = sanitizeSelection(loadSelection());
+    window.CUCUStorage?.saveCartSelection?.(selection);
+    updateHeaderBadge(selection);
+
+    const ids = Object.keys(selection);
+    if (!ids.length) {
+      isCartEmpty = true;
+      emptyState.hidden = false;
+      subtotalValue.textContent = formatMoneyCOP(0);
+      deliveryValue.textContent = formatMoneyCOP(DELIVERY_FEE);
+      totalValue.textContent = formatMoneyCOP(DELIVERY_FEE);
+      itemsMini.innerHTML = '';
+      computed = { subtotal: 0, delivery: DELIVERY_FEE, total: DELIVERY_FEE, lineItems: [] };
+      submitBtn.disabled = true;
+      return;
+    }
+
+    isCartEmpty = false;
+    emptyState.hidden = true;
+
+    let publicaciones = null;
+    try {
+      const cachedRaw = localStorage.getItem('publicaciones_cache');
+      const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
+      if (cached && Array.isArray(cached.items) && (Date.now() - Number(cached.ts || 0)) < 60_000) {
+        publicaciones = cached.items;
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!Array.isArray(publicaciones)) {
+      await auth.ensureAuthenticatedSession();
+      const result = await auth.authenticatedFetch('/api/publicaciones');
+      if (!result) return;
+      const { response: res, payload } = result;
+      if (!res.ok || !Array.isArray(payload)) {
+        setOutMessage('No se pudieron cargar las publicaciones para calcular el total.', 'err');
+        submitBtn.disabled = true;
+        return;
+      }
+      publicaciones = payload;
+      try {
+        localStorage.setItem('publicaciones_cache', JSON.stringify({ ts: Date.now(), items: publicaciones }));
+      } catch {
+        // ignore
+      }
+    }
+
+    const byId = new Map(publicaciones.map((p) => [Number(p.id), p]));
+
+    let subtotal = 0;
+    const lineItems = ids.map((idStr) => {
+      const id = Number(idStr);
+      const qty = Number(selection[idStr] || 0);
+      const pub = byId.get(id);
+      const title = pub?.titulo || `Publicación #${id}`;
+      const unit = Number(pub?.precio || 0);
+      const lineTotal = unit * qty;
+      const pickupLat = safeNumber(pub?.ubicacion?.latitud);
+      const pickupLng = safeNumber(pub?.ubicacion?.longitud);
+      subtotal += lineTotal;
+      return {
+        id,
+        title,
+        qty,
+        unit,
+        lineTotal,
+        pickup: pickupLat != null && pickupLng != null ? { lat: pickupLat, lng: pickupLng } : null,
+      };
+    });
+
+    const delivery = DELIVERY_FEE;
+    const total = subtotal + delivery;
+
+    computed = { subtotal, delivery, total, lineItems };
+
+    subtotalValue.textContent = formatMoneyCOP(subtotal);
+    deliveryValue.textContent = formatMoneyCOP(delivery);
+    totalValue.textContent = formatMoneyCOP(total);
+
+    itemsMini.innerHTML = lineItems.map((it) => `
+      <li>${String(it.title)} — ${it.qty} × ${formatMoneyCOP(it.unit)}</li>
+    `).join('');
+  }
+
+  function updatePaymentSections() {
+    const metodo = document.querySelector('input[name="metodo"]:checked')?.value || '';
+
+    document.querySelectorAll('#paymentMethodGroup .payment-option').forEach((el) => {
+      const m = el.getAttribute('data-method');
+      el.classList.toggle('selected', Boolean(m && m === metodo));
+    });
+
+    cashSection.hidden = metodo !== 'efectivo';
+    cardSection.hidden = metodo !== 'tarjeta';
+    pseSection.hidden = metodo !== 'pse';
+
+    submitBtn.disabled = isCartEmpty || metodo === 'pse';
+
+    if (metodo === 'efectivo') {
+      const needs = Boolean(needsChange?.checked);
+      cashHint.textContent = needs
+        ? `Total: ${formatMoneyCOP(computed.total)}. Ingresa el valor con el que pagarás.`
+        : `Total: ${formatMoneyCOP(computed.total)}.`;
+    } else {
+      cashHint.textContent = '';
+    }
+  }
+
+  document.getElementById('paymentMethodGroup').addEventListener('change', updatePaymentSections);
+  needsChange.addEventListener('change', updatePaymentSections);
+
+  direccionBaseInput?.addEventListener('input', () => {
+    selectedAddressSuggestion = null;
+    const query = String(direccionBaseInput.value || '').trim();
+
+    if (addressAutocompleteTimer) clearTimeout(addressAutocompleteTimer);
+    if (query.length < 3) {
+      clearAddressSuggestions();
+      return;
+    }
+
+    addressAutocompleteTimer = setTimeout(async () => {
+      const suggestions = await fetchAddressSuggestions(query);
+      renderAddressSuggestions(suggestions);
+    }, 180);
+  });
+
+  addressSuggestions?.addEventListener('click', (event) => {
+    const target = event.target?.closest?.('[data-address-suggestion-index]');
+    if (!target) return;
+    const index = Number(target.getAttribute('data-address-suggestion-index'));
+    applyAddressSuggestion(addressSuggestionItems[index]);
+  });
+
+  direccionBaseInput?.addEventListener('keydown', (event) => {
+    const isOpen = addressSuggestions?.classList.contains('is-open');
+    if (!isOpen || !addressSuggestionItems.length) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveAddressSuggestionHighlight(1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveAddressSuggestionHighlight(-1);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      if (highlightedAddressSuggestionIndex >= 0) {
+        event.preventDefault();
+        applyAddressSuggestion(addressSuggestionItems[highlightedAddressSuggestionIndex]);
+      }
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      clearAddressSuggestions();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!addressSuggestions?.classList.contains('is-open')) return;
+    if (event.target === direccionBaseInput) return;
+    if (addressSuggestions.contains(event.target)) return;
+    clearAddressSuggestions();
+  });
+
+  checkoutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    setOutMessage('Procesando...', '');
+    submitBtn.disabled = true;
+
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    const metodo = String(data.metodo || '').trim();
+
+    if (metodo === 'pse') {
+      setOutMessage('PSE todavía no está disponible. Selecciona efectivo o tarjeta.', 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const selection = sanitizeSelection(loadSelection());
+    const publicacion_ids = selectionToPublicacionIds(selection);
+    if (!publicacion_ids.length) {
+      setOutMessage('Tu carrito está vacío.', 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const telefono = String(data.telefono || '').trim();
+    if (!telefono) {
+      setOutMessage('El teléfono es requerido.', 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const direccionBase = String(data.direccion_base || '').trim();
+    const direccionDetalles = String(data.direccion_detalles || '').trim();
+    if (!direccionBase) {
+      setOutMessage('La dirección de entrega es requerida.', 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const direccionTexto = selectedAddressSuggestion && direccionBase === selectedAddressSuggestion.shortText
+      ? selectedAddressSuggestion.display_name
+      : direccionBase;
+    const direccion = [direccionTexto, direccionDetalles].filter(Boolean).join(', ');
+
+    if (metodo === 'efectivo' && needsChange.checked) {
+      const payWith = Number(String(payWithAmount.value || '').replace(/\D+/g, ''));
+      if (!payWith || payWith <= 0) {
+        setOutMessage('Ingresa con cuánto pagarás.', 'err');
+        submitBtn.disabled = false;
+        return;
+      }
+      if (payWith < computed.total) {
+        setOutMessage(`El valor debe ser mayor o igual al total (${formatMoneyCOP(computed.total)}).`, 'err');
+        submitBtn.disabled = false;
+        return;
+      }
+    }
+
+    if (metodo === 'tarjeta') {
+      const requiredFields = ['card_name', 'card_number', 'card_exp', 'card_cvv', 'doc_number'];
+      const missing = requiredFields.find((k) => !String(data[k] || '').trim());
+      if (missing) {
+        setOutMessage('Completa los datos de la tarjeta y el documento.', 'err');
+        submitBtn.disabled = false;
+        return;
+      }
+    }
+
+    await auth.ensureAuthenticatedSession();
+    const deliveryCoordsPromise = resolveDeliveryCoordinates(direccionTexto);
+
+    let deliveryCoords = null;
+    try {
+      deliveryCoords = await Promise.race([
+        deliveryCoordsPromise,
+        new Promise((resolve) => window.setTimeout(() => resolve(null), 800)),
+      ]);
+    } catch {
+      deliveryCoords = null;
+    }
+
+    const pedidoResult = await auth.authenticatedFetch('/api/pedidos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telefono,
+        publicacion_ids,
+        direccion_entrega: direccionTexto,
+        direccion_entrega_detalles: direccionDetalles,
+        direccion_entrega_latitud: deliveryCoords?.lat ?? null,
+        direccion_entrega_longitud: deliveryCoords?.lng ?? null,
+      }),
+    });
+
+    if (!pedidoResult) return;
+    const { response: pedidoRes, payload: pedidoJson } = pedidoResult;
+    if (!pedidoRes.ok) {
+      setOutMessage(extractErrorMessage(pedidoJson, 'No se pudo crear el pedido.'), 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const pedidoId = pedidoJson?.id;
+    if (!pedidoId) {
+      setOutMessage('No se pudo determinar el ID del pedido.', 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    localStorage.setItem('last_pedido_id', String(pedidoId));
+
+    const pagoResult = await auth.authenticatedFetch('/api/pagos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pedido_id: Number(pedidoId), metodo, monto: Number(pedidoJson?.total || computed.total) }),
+    });
+
+    if (!pagoResult) return;
+    const { response: pagoRes, payload: pagoJson } = pagoResult;
+
+    if (pagoRes.ok) {
+      window.CUCUStorage?.clearCartSelection?.();
+      updateHeaderBadge({});
+      localStorage.setItem(`pedido_status_${pedidoId}`, 'active');
+      clearPublicationCaches();
+
+      let draftPlan = buildDraftTrackingPlan(Number(pedidoId), deliveryCoords, computed.lineItems);
+      if (draftPlan) {
+        draftPlan = await enrichTrackingPlanWithRoadRoute(draftPlan);
+      }
+      if (draftPlan && tracking?.writeTrackingPlan) {
+        tracking.writeTrackingPlan(Number(pedidoId), draftPlan);
+      }
+
+      localStorage.setItem('last_checkout', JSON.stringify({
+        pedidoId: Number(pedidoId),
+        metodo,
+        total: Number(pedidoJson?.total || computed.total || 0),
+        nombre: String(data.nombre || '').trim(),
+        apellidos: String(data.apellidos || '').trim(),
+        telefono,
+        direccion, // compatibilidad
+        direccion_base: direccionTexto,
+        direccion_detalles: direccionDetalles,
+        direccion_lat: deliveryCoords?.lat ?? null,
+        direccion_lng: deliveryCoords?.lng ?? null,
+        createdAt: Date.now(),
+      }));
+      setOutMessage('Pago registrado. Redirigiendo al seguimiento del pedido...', 'ok');
+      window.location.href = `/ui/seguimiento/?pedido_id=${encodeURIComponent(String(pedidoId))}`;
+      return;
+    } else {
+      setOutMessage(extractErrorMessage(pagoJson, 'No se pudo registrar el pago.'), 'err');
+      submitBtn.disabled = false;
+    }
+  });
+
+  hydrateDraft();
+  hydrateSummary().then(updatePaymentSections);
+
+  window.addEventListener('storage', (event) => {
+    const cartStorageKey = window.CUCUStorage?.getCartStorageKey?.();
+    if (event.key === cartStorageKey || event.key === 'cart_selection_sync_version' || event.key === 'publicaciones_sync_version') {
+      hydrateSummary().then(updatePaymentSections);
+    }
+  });
+</script>
+{% endblock %}

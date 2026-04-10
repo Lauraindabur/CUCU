@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CertificadoManipulacion
+from .infrastructure.models import CertificadoManipulacion
 
 
 @admin.register(CertificadoManipulacion)

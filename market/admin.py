@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Pedido, Publicacion
+from .infrastructure.models import Pedido, Publicacion
 
 
 @admin.register(Publicacion)

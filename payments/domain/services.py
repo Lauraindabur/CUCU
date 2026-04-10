@@ -2,11 +2,11 @@ from django.utils import timezone
 
 from common.exceptions import NotFoundError, ValidationError
 
-from market.models import Pedido
+from market.infrastructure.models import Pedido
 from transactions.domain.builders import ensure_transaccion_for_pedido
 
-from ..infra.gateways import PaymentGatewayFactory
-from ..models import Pago
+from ..infrastructure.gateways import PaymentGatewayFactory
+from ..infrastructure.models import Pago
 
 
 class PaymentService:

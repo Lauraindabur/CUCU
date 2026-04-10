@@ -1,0 +1,1279 @@
+{% extends "base_app.html" %}
+
+{% block title %}Mi perfil | CUCU{% endblock %}
+{% block eyebrow %}Perfil{% endblock %}
+{% block page_title %}Mi <span>perfil</span>{% endblock %}
+{% block page_lead %}Consulta tu historial de pedidos, administra tus publicaciones y revisa el saldo de tus ventas desde un solo lugar.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-primary" href="/ui/pedido/">Comprar</a>
+  <a class="btn btn-secondary" href="/ui/publicar/">Vender</a>
+{% endblock %}
+{% block hero_points %}{% endblock %}
+
+{% block head_extra %}
+  <style>
+    .page-grid { grid-template-columns: minmax(0, 1fr); }
+    .hero-panel { display: none; }
+    .section-title, .section-hint { display: none; }
+    .surface { padding-top: 0; }
+
+    .profile-shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+      padding: 0 22px 24px;
+      align-items: start;
+    }
+
+    .profile-card,
+    .workspace-card,
+    .order-detail,
+    .publication-card,
+    .sales-card,
+    .tab-switcher {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 24px;
+      box-shadow: 0 18px 54px rgba(31, 36, 48, 0.06);
+    }
+
+    .profile-card {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      position: sticky;
+      top: 96px;
+    }
+
+    .profile-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--accent-soft), #fff7f1);
+      display: grid;
+      place-items: center;
+      color: var(--accent-deep);
+      font-family: 'Outfit', sans-serif;
+      font-size: 34px;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(255, 106, 26, 0.12);
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-name {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .profile-sub,
+    .profile-line,
+    .meta-line,
+    .publication-meta,
+    .field-help {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .profile-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .profile-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(31, 36, 48, 0.03);
+    }
+
+    .profile-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff8ef;
+      color: #7a5a18;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 196, 89, 0.25);
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-stat {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(31, 36, 48, 0.03);
+      text-align: center;
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 16px;
+    }
+
+    .tab-switcher {
+      padding: 8px;
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .tab-button {
+      min-height: 52px;
+      border: 0;
+      border-radius: 18px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tab-button.is-active {
+      background: linear-gradient(135deg, #fff1e7, #fff8f3);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px rgba(255, 106, 26, 0.12);
+    }
+
+    .workspace-card {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-head h3,
+    .order-detail h3,
+    .publication-card h3,
+    .sales-card h3 {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    .orders-layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item {
+      width: 100%;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: #fff;
+      border-radius: 18px;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .history-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 106, 26, 0.22);
+      box-shadow: 0 14px 24px rgba(31, 36, 48, 0.06);
+    }
+
+    .history-item.is-active {
+      border-color: rgba(255, 106, 26, 0.3);
+      background: linear-gradient(135deg, #fff6f0, #fffdfa);
+    }
+
+    .history-main {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .history-main strong {
+      display: block;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .history-total {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .pagination {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .page-button {
+      min-width: 42px;
+      height: 42px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .page-button.is-active {
+      border-color: rgba(255, 106, 26, 0.26);
+      background: linear-gradient(135deg, #fff1e7, #fff8f3);
+      color: var(--accent-deep);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(31, 36, 48, 0.05);
+      color: var(--ink);
+    }
+
+    .status-pill.aceptado,
+    .status-pill.autorizado,
+    .status-pill.activa,
+    .status-pill.entregado,
+    .status-pill.finalizado,
+    .status-pill.completado {
+      background: rgba(90, 168, 81, 0.14);
+      color: #3a7d34;
+    }
+
+    .status-pill.pendiente,
+    .status-pill.pausada {
+      background: rgba(255, 106, 26, 0.12);
+      color: var(--accent-deep);
+    }
+
+    .order-detail {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-kv {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(31, 36, 48, 0.03);
+    }
+
+    .detail-kv span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .detail-kv strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 15px;
+    }
+
+    .order-items {
+      display: grid;
+      gap: 10px;
+    }
+
+    .order-item {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .sales-layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .sales-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background: linear-gradient(135deg, #fff7f1, #fff1e7);
+    }
+
+    .sales-amount {
+      font-family: 'Outfit', sans-serif;
+      font-size: 40px;
+      letter-spacing: -0.06em;
+      line-height: 0.95;
+      word-break: break-word;
+    }
+
+    .sales-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sales-meta div {
+      min-width: 0;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .sales-meta div:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .sales-meta span,
+    .inline-meta span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .sales-meta strong,
+    .inline-meta strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 15px;
+      word-break: break-word;
+    }
+
+    .sales-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .publication-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .publication-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      gap: 14px;
+    }
+
+    .publication-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .publication-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .publication-summary div {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(31, 36, 48, 0.03);
+    }
+
+    .publication-summary span,
+    .publication-collapser {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .publication-summary strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 15px;
+      word-break: break-word;
+    }
+
+    .publication-collapser {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 106, 26, 0.08);
+      color: var(--accent-deep);
+      justify-self: start;
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    .publication-card.is-expanded .publication-collapser {
+      background: rgba(31, 36, 48, 0.07);
+      color: var(--ink);
+    }
+
+    .publication-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .publication-grid label,
+    .publication-full label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .publication-full {
+      display: grid;
+      gap: 12px;
+    }
+
+    .publication-body {
+      display: grid;
+      gap: 12px;
+      padding-top: 2px;
+    }
+
+    .publication-compact-note {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(31, 36, 48, 0.03);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .publication-card input,
+    .publication-card textarea,
+    .publication-card select {
+      width: 100%;
+    }
+
+    .publication-card textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .inline-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .inline-meta div {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(31, 36, 48, 0.03);
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .note-box {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px dashed rgba(31, 36, 48, 0.12);
+      background: rgba(31, 36, 48, 0.02);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .toast {
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .toast.ok {
+      background: rgba(90, 168, 81, 0.14);
+      color: #3a7d34;
+    }
+
+    .toast.err {
+      background: rgba(199, 67, 67, 0.12);
+      color: #a13030;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 1080px) {
+      .profile-shell,
+      .orders-layout,
+      .sales-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-card {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .publication-summary,
+      .publication-grid,
+      .detail-grid,
+      .sales-meta,
+      .inline-meta,
+      .mini-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .history-main {
+        flex-direction: column;
+      }
+
+      .history-total {
+        text-align: left;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="profile-shell">
+    <aside class="profile-card">
+      <div class="profile-avatar" id="profileAvatar">CU</div>
+
+      <div>
+        <h3 class="profile-name" id="profileName">Cargando...</h3>
+        <div class="profile-sub" id="profileEmail">-</div>
+        <div class="profile-sub" id="profileJoined">-</div>
+      </div>
+
+      <div class="profile-rating">
+        <span>★</span>
+        <span id="profileRating">0.0</span>
+      </div>
+
+      <div class="mini-stats">
+        <div class="mini-stat"><span>Compras</span><strong id="totalCompras">0</strong></div>
+        <div class="mini-stat"><span>Ventas</span><strong id="totalVentas">0</strong></div>
+        <div class="mini-stat"><span>Platos</span><strong id="totalPlatos">0</strong></div>
+      </div>
+
+      <div class="profile-stack">
+        <div class="profile-line"><span>✉</span><span id="profileEmailLine">-</span></div>
+        <div class="profile-line"><span>📅</span><span id="profileMemberLine">-</span></div>
+      </div>
+
+      <button class="btn btn-secondary" id="logoutBtn" type="button">Cerrar sesión</button>
+    </aside>
+
+    <section class="workspace">
+      <div class="tab-switcher" role="tablist" aria-label="Secciones del perfil">
+        <button class="tab-button is-active" type="button" role="tab" aria-selected="true" data-tab="pedidos">Mis pedidos</button>
+        <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="publicaciones">Mis publicaciones</button>
+      </div>
+
+      <div id="profileToast" class="toast" hidden></div>
+
+      <section class="workspace-card" data-panel="pedidos">
+        <div class="section-head">
+          <div>
+            <h3>Historial de pedidos</h3>
+            <div class="field-help">Haz click en un pedido para ver el detalle completo, su fecha, estado y valor total.</div>
+          </div>
+        </div>
+
+        <div class="orders-layout">
+          <div class="history-stack">
+            <div id="ordersHistory" class="history-list"></div>
+            <div id="ordersPagination" class="pagination"></div>
+          </div>
+          <div id="orderDetail" class="order-detail">
+            <h3>Detalle del pedido</h3>
+            <div class="note-box">Selecciona un pedido del historial para ver sus productos, fecha, teléfono y valor a pagar.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace-card" data-panel="publicaciones" hidden>
+        <div class="section-head">
+          <div>
+            <h3>Mis publicaciones</h3>
+            <div class="field-help">Revisa tus platos publicados desde una vista simple. Si necesitas cambiar algo, abre el detalle.</div>
+          </div>
+        </div>
+
+        <div class="sales-layout">
+          <aside class="sales-card">
+            <div>
+              <h3>Saldo de ventas</h3>
+              <div class="field-help">Balance acumulado a partir de las ventas registradas de tus platos.</div>
+            </div>
+            <div class="sales-amount" id="salesBalance">$0</div>
+            <div class="sales-meta">
+              <div><span>Unidades vendidas</span><strong id="soldUnits">0</strong></div>
+              <div><span>Publicaciones</span><strong id="totalPublicaciones">0</strong></div>
+              <div><span>Estado</span><strong>Disponible</strong></div>
+            </div>
+            <button class="btn btn-primary" id="transferBtn" type="button">Transferir ganancias</button>
+            <div class="field-help">La transferencia se deja lista como flujo demo para esta entrega.</div>
+          </aside>
+
+          <div id="publicationsList" class="sales-grid"></div>
+        </div>
+      </section>
+
+      <pre id="out" class="out" hidden aria-live="polite"></pre>
+    </section>
+  </div>
+{% endblock %}
+
+{% block page_scripts %}
+  <script>
+    const auth = window.CUCUAuth;
+    const out = document.getElementById('out');
+    const toast = document.getElementById('profileToast');
+    const ordersHistory = document.getElementById('ordersHistory');
+    const ordersPagination = document.getElementById('ordersPagination');
+    const orderDetail = document.getElementById('orderDetail');
+    const publicationsList = document.getElementById('publicationsList');
+    const salesBalance = document.getElementById('salesBalance');
+    const soldUnits = document.getElementById('soldUnits');
+    const totalPublicaciones = document.getElementById('totalPublicaciones');
+    const PEDIDOS_PER_PAGE = 4;
+    const tracking = window.CUCUTracking;
+    const ETA_REFRESH_MS = 30000;
+
+    let profileData = null;
+    let pedidosState = [];
+    let publicacionesState = [];
+    let activePedidoId = null;
+    let currentOrdersPage = 1;
+    let etaRefreshTimer = null;
+
+    auth.ensureAuthenticatedSession();
+
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      return new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function showToast(message, type = 'ok') {
+      toast.hidden = false;
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+    }
+
+    function hideToast() {
+      toast.hidden = true;
+      toast.textContent = '';
+      toast.className = 'toast';
+    }
+
+    function statusClass(value) {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (normalized === 'aceptado' || normalized === 'autorizado' || normalized === 'activa' || normalized === 'entregado' || normalized === 'finalizado' || normalized === 'completado') return normalized;
+      if (normalized === 'pausada') return 'pausada';
+      return 'pendiente';
+    }
+
+    function resolvePedidoEstado(pedido) {
+      const pedidoId = Number(pedido?.id || 0);
+      const storedStatus = pedidoId ? localStorage.getItem(`pedido_status_${pedidoId}`) : null;
+      const trackedPlan = pedidoId && tracking?.readTrackingPlan ? tracking.readTrackingPlan(pedidoId) : null;
+      if (storedStatus === 'delivered' || String(trackedPlan?.status || '').toLowerCase() === 'delivered') {
+        return 'ENTREGADO';
+      }
+      return String(pedido?.estado || 'PENDIENTE');
+    }
+
+    function resolvePedidoEta(pedidoId) {
+      if (!pedidoId || !tracking?.getEtaLabel) return '';
+      return tracking.getEtaLabel(pedidoId) || '';
+    }
+
+    function refreshVisibleEtas() {
+      if (!pedidosState.length) return;
+
+      ordersHistory.querySelectorAll('[data-pedido-id]').forEach((node) => {
+        const pedidoId = Number(node.getAttribute('data-pedido-id'));
+        if (!pedidoId) return;
+
+        const etaNode = node.querySelector('[data-pedido-eta]');
+        if (etaNode) {
+          const eta = resolvePedidoEta(pedidoId);
+          etaNode.textContent = eta ? `ETA: ${eta}` : 'ETA pendiente';
+        }
+
+        const pedido = pedidosState.find((item) => Number(item.id) === pedidoId);
+        const statusNode = node.querySelector('[data-pedido-status]');
+        if (pedido && statusNode) {
+          const estado = resolvePedidoEstado(pedido);
+          statusNode.className = `status-pill ${statusClass(estado)}`;
+          statusNode.textContent = estado;
+        }
+      });
+
+      if (!activePedidoId) return;
+
+      const pedido = pedidosState.find((item) => Number(item.id) === Number(activePedidoId));
+      if (!pedido) return;
+
+      const detailEtaNode = orderDetail.querySelector('[data-detail-eta]');
+      if (detailEtaNode) {
+        detailEtaNode.textContent = resolvePedidoEta(activePedidoId) || 'Pendiente';
+      }
+
+      const detailStatusNode = orderDetail.querySelector('[data-detail-status]');
+      if (detailStatusNode) {
+        const estado = resolvePedidoEstado(pedido);
+        detailStatusNode.className = `status-pill ${statusClass(estado)}`;
+        detailStatusNode.textContent = estado;
+      }
+    }
+
+    function ensureEtaAutoRefresh() {
+      if (etaRefreshTimer != null) return;
+      etaRefreshTimer = window.setInterval(() => {
+        if (document.hidden) return;
+        refreshVisibleEtas();
+      }, ETA_REFRESH_MS);
+    }
+
+    function renderProfile(data) {
+      profileData = data || {};
+      const name = String(data?.nombre || 'Usuario CUCU').trim();
+      const email = String(data?.email || '-').trim();
+      const avatar = document.getElementById('profileAvatar');
+
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('profileEmail').textContent = email;
+      document.getElementById('profileJoined').textContent = `Miembro desde ${formatDate(data?.fecha_registro)}`;
+      document.getElementById('profileEmailLine').textContent = email;
+      document.getElementById('profileMemberLine').textContent = formatDate(data?.fecha_registro);
+      document.getElementById('profileRating').textContent = Number(data?.reputacion_promedio || 0).toFixed(1);
+      document.getElementById('totalCompras').textContent = String(data?.total_compras || 0);
+      document.getElementById('totalVentas').textContent = String(data?.total_ventas || 0);
+
+      const foto = String(data?.foto_perfil_url || '').trim();
+      if (foto) {
+        avatar.innerHTML = `<img src="${escapeHtml(foto)}" alt="Foto de perfil" />`;
+      } else {
+        avatar.textContent = name.split(/\s+/).slice(0, 2).map((part) => part[0] || '').join('').toUpperCase() || 'CU';
+      }
+    }
+
+    function getOrdersPageCount() {
+      return Math.max(1, Math.ceil(pedidosState.length / PEDIDOS_PER_PAGE));
+    }
+
+    function getOrdersForCurrentPage() {
+      const start = (currentOrdersPage - 1) * PEDIDOS_PER_PAGE;
+      return pedidosState.slice(start, start + PEDIDOS_PER_PAGE);
+    }
+
+    function syncOrdersPageWithPedido(pedidoId) {
+      const index = pedidosState.findIndex((item) => Number(item.id) === Number(pedidoId));
+      if (index === -1) return;
+      currentOrdersPage = Math.floor(index / PEDIDOS_PER_PAGE) + 1;
+    }
+
+    function renderOrdersPagination() {
+      const totalPages = getOrdersPageCount();
+      if (!pedidosState.length || totalPages <= 1) {
+        ordersPagination.innerHTML = '';
+        return;
+      }
+
+      ordersPagination.innerHTML = Array.from({ length: totalPages }, (_, index) => {
+        const page = index + 1;
+        return `<button class="page-button ${page === currentOrdersPage ? 'is-active' : ''}" type="button" data-orders-page="${page}">${page}</button>`;
+      }).join('');
+    }
+
+    function renderOrdersList() {
+      if (!pedidosState.length) {
+        ordersHistory.innerHTML = '<div class="note-box">Todavía no tienes pedidos registrados.</div>';
+        ordersPagination.innerHTML = '';
+        orderDetail.innerHTML = '<h3>Detalle del pedido</h3><div class="note-box">Cuando hagas tu primer pedido, aquí verás toda la información.</div>';
+        return;
+      }
+
+      const pedidosPage = getOrdersForCurrentPage();
+      ordersHistory.innerHTML = pedidosPage.map((pedido) => {
+        const active = Number(pedido.id) === Number(activePedidoId);
+        const estado = resolvePedidoEstado(pedido);
+        const eta = resolvePedidoEta(Number(pedido.id));
+        return `
+          <button class="history-item ${active ? 'is-active' : ''}" type="button" data-pedido-id="${pedido.id}">
+            <div class="history-main">
+              <div>
+                <strong>Pedido #${pedido.id}</strong>
+                <div class="meta-line">${formatDate(pedido.fecha_creacion)}</div>
+              </div>
+              <div class="history-total">${formatMoney(pedido.total)}</div>
+            </div>
+            <div class="meta-line" style="margin-top:8px;">${Array.isArray(pedido.items) ? pedido.items.length : 0} productos</div>
+            <div class="meta-line" style="margin-top:6px;" data-pedido-eta>${eta ? `ETA: ${escapeHtml(eta)}` : 'ETA pendiente'}</div>
+            <div style="margin-top:10px;"><span class="status-pill ${statusClass(estado)}" data-pedido-status>${escapeHtml(estado)}</span></div>
+          </button>
+        `;
+      }).join('');
+
+      renderOrdersPagination();
+    }
+
+    function renderOrderDetail(pedidoId) {
+      const pedido = pedidosState.find((item) => Number(item.id) === Number(pedidoId));
+      if (!pedido) return;
+      const estado = resolvePedidoEstado(pedido);
+      const eta = resolvePedidoEta(Number(pedido.id));
+
+      activePedidoId = Number(pedido.id);
+      syncOrdersPageWithPedido(activePedidoId);
+      renderOrdersList();
+
+      const items = Array.isArray(pedido.items) ? pedido.items : [];
+      const itemsHtml = items.length
+        ? items.map((item) => {
+            const titulo = item?.publicacion?.titulo || `Publicación #${item?.publicacion?.id || ''}`;
+            return `
+              <div class="order-item">
+                <div>
+                  <strong>${escapeHtml(titulo)}</strong>
+                  <div class="meta-line">${item.cantidad} × ${formatMoney(item.precio_unitario)}</div>
+                </div>
+                <strong>${formatMoney(Number(item.cantidad || 0) * Number(item.precio_unitario || 0))}</strong>
+              </div>
+            `;
+          }).join('')
+        : '<div class="note-box">Este pedido no tiene items visibles.</div>';
+
+      orderDetail.innerHTML = `
+        <div class="section-head">
+          <div>
+            <h3>Pedido #${pedido.id}</h3>
+            <div class="field-help">${formatDate(pedido.fecha_creacion)}</div>
+          </div>
+          <span class="status-pill ${statusClass(estado)}" data-detail-status>${escapeHtml(estado)}</span>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-kv"><span>Total a pagar</span><strong>${formatMoney(pedido.total)}</strong></div>
+          <div class="detail-kv"><span>Teléfono</span><strong>${escapeHtml(pedido.telefono || '-')}</strong></div>
+          <div class="detail-kv"><span>ETA</span><strong data-detail-eta>${escapeHtml(eta || 'Pendiente')}</strong></div>
+        </div>
+        <div>
+          <h3 style="font-size:18px; margin-bottom:10px;">Productos del pedido</h3>
+          <div class="order-items">${itemsHtml}</div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-secondary" href="/ui/seguimiento/?pedido_id=${encodeURIComponent(String(pedido.id))}">Ver seguimiento</a>
+        </div>
+      `;
+    }
+
+    function publicationCardMarkup(publicacion) {
+      const ingredientesTexto = Array.isArray(publicacion.ingredientes) ? publicacion.ingredientes.join(', ') : '';
+      const estado = String(publicacion.estado || 'ACTIVA').trim().toUpperCase();
+      const stock = Math.max(0, Number(publicacion.stock || 0));
+      const disponibilidad = stock > 0 && estado === 'ACTIVA' ? 'Disponible' : 'No disponible';
+      const direccionCompleta = String(publicacion?.ubicacion?.direccion_texto || '').trim();
+      const direccionCorta = direccionCompleta
+        ? direccionCompleta.split(',').map((item) => item.trim()).filter(Boolean).slice(0, 2).join(', ')
+        : 'Ubicación general';
+      return `
+        <article class="publication-card" data-publicacion-id="${publicacion.id}">
+          <button
+            class="publication-toggle"
+            type="button"
+            data-toggle-publicacion="${publicacion.id}"
+            aria-expanded="false"
+            aria-controls="publication-body-${publicacion.id}"
+          >
+            <div class="publication-head">
+              <div>
+                <h3>${escapeHtml(publicacion.titulo || 'Publicación')}</h3>
+                <div class="publication-meta">Resumen rápido del plato. Haz click si quieres ver más opciones.</div>
+              </div>
+              <span class="status-pill ${statusClass(publicacion.estado)}">${escapeHtml(publicacion.estado || 'ACTIVA')}</span>
+            </div>
+
+            <div class="publication-summary">
+              <div><span>Precio</span><strong>${formatMoney(publicacion.precio)}</strong></div>
+              <div><span>Stock</span><strong>${Number(publicacion.stock || 0)}</strong></div>
+              <div><span>Estado</span><strong>${escapeHtml(disponibilidad)}</strong></div>
+            </div>
+
+            <span class="publication-collapser">Ver detalle completo</span>
+          </button>
+
+          <div class="publication-body" id="publication-body-${publicacion.id}" hidden>
+            <div class="publication-compact-note">Aquí puedes hacer cambios básicos del plato sin mostrar demasiada información al mismo tiempo.</div>
+
+            <div class="inline-meta">
+              <div><span>Ventas</span><strong>${Number(publicacion.total_vendido || 0)}</strong></div>
+              <div><span>Ubicación</span><strong>${escapeHtml(direccionCorta)}</strong></div>
+            </div>
+
+            <div class="publication-grid">
+              <label>
+                Título del plato
+                <input name="titulo" value="${escapeHtml(publicacion.titulo || '')}" />
+              </label>
+              <label>
+                Precio
+                <input name="precio" type="number" min="0.01" step="any" inputmode="decimal" value="${Number(publicacion.precio || 0)}" />
+              </label>
+              <label>
+                Stock disponible
+                <input name="stock" type="number" min="0" step="1" value="${Number(publicacion.stock || 0)}" />
+              </label>
+              <label>
+                Máximo por venta
+                <input name="maximo_por_venta" type="number" min="1" step="1" value="${Number(publicacion.maximo_por_venta || 5)}" />
+              </label>
+              <label>
+                Estado
+                <select name="estado">
+                  <option value="ACTIVA" ${String(publicacion.estado || '').toUpperCase() === 'ACTIVA' ? 'selected' : ''}>ACTIVA</option>
+                  <option value="PAUSADA" ${String(publicacion.estado || '').toUpperCase() === 'PAUSADA' ? 'selected' : ''}>PAUSADA</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="publication-full">
+              <label>
+                Ingredientes
+                <input name="ingredientes" value="${escapeHtml(ingredientesTexto)}" placeholder="Ej: tortilla, carne, cebolla, cilantro" />
+              </label>
+              <label>
+                Información del menú
+                <textarea name="descripcion">${escapeHtml(publicacion.descripcion || '')}</textarea>
+              </label>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn btn-secondary" type="button" data-delete-publicacion="${publicacion.id}">Eliminar publicación</button>
+              <button class="btn btn-primary" type="button" data-save-publicacion="${publicacion.id}">Guardar cambios</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderPublicaciones(data) {
+      const publicaciones = Array.isArray(data?.publicaciones) ? data.publicaciones : [];
+      publicacionesState = publicaciones;
+      salesBalance.textContent = formatMoney(data?.saldo_disponible || 0);
+      soldUnits.textContent = String(data?.total_unidades_vendidas || 0);
+      totalPublicaciones.textContent = String(publicaciones.length);
+      document.getElementById('totalPlatos').textContent = String(publicaciones.length);
+
+      if (!publicaciones.length) {
+        publicationsList.innerHTML = '<div class="note-box">Todavía no has publicado platos. Cuando publiques uno, aquí podrás editar su stock, ingredientes, valor y la información del menú.</div>';
+        return;
+      }
+
+      publicationsList.innerHTML = publicaciones.map(publicationCardMarkup).join('');
+    }
+
+    async function loadProfile() {
+      const result = await auth.authenticatedFetch('/api/me');
+      if (!result) return;
+      const { response, payload } = result;
+      if (!response.ok) throw new Error(payload?.detail || `Error ${response.status}`);
+      renderProfile(payload);
+    }
+
+    async function loadOrders() {
+      if (tracking?.syncTrackedOrders) {
+        await tracking.syncTrackedOrders();
+      }
+
+      const result = await auth.authenticatedFetch('/api/mis-pedidos');
+      if (!result) return;
+      const { response, payload } = result;
+      if (!response.ok) throw new Error(payload?.detail || `Error ${response.status}`);
+      pedidosState = Array.isArray(payload) ? payload : [];
+      activePedidoId = pedidosState[0]?.id || null;
+      currentOrdersPage = 1;
+      if (activePedidoId) syncOrdersPageWithPedido(activePedidoId);
+      renderOrdersList();
+      if (activePedidoId) renderOrderDetail(activePedidoId);
+      refreshVisibleEtas();
+    }
+
+    async function loadPublicaciones() {
+      const result = await auth.authenticatedFetch('/api/mis-publicaciones');
+      if (!result) return;
+      const { response, payload } = result;
+      if (!response.ok) throw new Error(payload?.detail || `Error ${response.status}`);
+      renderPublicaciones(payload);
+    }
+
+    async function savePublicacion(publicacionId, card) {
+      hideToast();
+      const ingredientesRaw = String(card.querySelector('[name="ingredientes"]').value || '').trim();
+      const payload = {
+        titulo: String(card.querySelector('[name="titulo"]').value || '').trim(),
+        precio: Number(card.querySelector('[name="precio"]').value || 0),
+        stock: Number(card.querySelector('[name="stock"]').value || 0),
+        maximo_por_venta: Number(card.querySelector('[name="maximo_por_venta"]').value || 1),
+        estado: String(card.querySelector('[name="estado"]').value || 'ACTIVA').trim(),
+        descripcion: String(card.querySelector('[name="descripcion"]').value || '').trim(),
+        ingredientes: ingredientesRaw ? ingredientesRaw.split(',').map((item) => item.trim()).filter(Boolean) : [],
+      };
+
+      const button = card.querySelector(`[data-save-publicacion="${publicacionId}"]`);
+      if (button) button.disabled = true;
+
+      const result = await auth.authenticatedFetch(`/api/publicaciones/${encodeURIComponent(String(publicacionId))}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (button) button.disabled = false;
+      if (!result) return;
+      const { response, payload: data } = result;
+      if (!response.ok) {
+        showToast(data?.detail || 'No se pudo guardar la publicación.', 'err');
+        return;
+      }
+
+      showToast('Publicación actualizada correctamente.', 'ok');
+      await loadPublicaciones();
+    }
+
+    async function deletePublicacion(publicacionId, card) {
+      hideToast();
+      const confirmed = window.confirm('¿Quieres eliminar esta publicación por completo?');
+      if (!confirmed) return;
+
+      const button = card.querySelector(`[data-delete-publicacion="${publicacionId}"]`);
+      if (button) button.disabled = true;
+
+      const result = await auth.authenticatedFetch(`/api/publicaciones/${encodeURIComponent(String(publicacionId))}`, {
+        method: 'DELETE',
+      });
+
+      if (button) button.disabled = false;
+      if (!result) return;
+
+      const { response, payload } = result;
+      if (!response.ok) {
+        showToast(payload?.detail || 'No se pudo eliminar la publicación.', 'err');
+        return;
+      }
+
+      showToast('Publicación eliminada correctamente.', 'ok');
+      await loadPublicaciones();
+    }
+
+    document.querySelectorAll('[data-tab]').forEach((button) => {
+      button.addEventListener('click', () => {
+        hideToast();
+        const tab = button.getAttribute('data-tab');
+        document.querySelectorAll('[data-tab]').forEach((item) => {
+          const active = item === button;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-panel]').forEach((panel) => {
+          panel.hidden = panel.getAttribute('data-panel') !== tab;
+        });
+      });
+    });
+
+    ordersHistory.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-pedido-id]');
+      if (!target) return;
+      renderOrderDetail(Number(target.getAttribute('data-pedido-id')));
+    });
+
+    ordersPagination.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-orders-page]');
+      if (!target) return;
+      currentOrdersPage = Number(target.getAttribute('data-orders-page')) || 1;
+      renderOrdersList();
+    });
+
+    publicationsList.addEventListener('click', (event) => {
+      const toggle = event.target.closest('[data-toggle-publicacion]');
+      if (toggle) {
+        const card = toggle.closest('[data-publicacion-id]');
+        const bodyId = toggle.getAttribute('aria-controls');
+        const body = bodyId ? document.getElementById(bodyId) : null;
+        if (!card || !body) return;
+
+        const nextExpanded = toggle.getAttribute('aria-expanded') !== 'true';
+        publicationsList.querySelectorAll('[data-toggle-publicacion]').forEach((button) => {
+          const parentCard = button.closest('[data-publicacion-id]');
+          const targetId = button.getAttribute('aria-controls');
+          const targetBody = targetId ? document.getElementById(targetId) : null;
+          button.setAttribute('aria-expanded', 'false');
+          if (parentCard) parentCard.classList.remove('is-expanded');
+          const helper = button.querySelector('.publication-collapser');
+          if (helper) helper.textContent = 'Ver detalle completo';
+          if (targetBody) targetBody.hidden = true;
+        });
+
+        if (nextExpanded) {
+          toggle.setAttribute('aria-expanded', 'true');
+          card.classList.add('is-expanded');
+          body.hidden = false;
+          const helper = toggle.querySelector('.publication-collapser');
+          if (helper) helper.textContent = 'Ocultar detalle';
+        }
+        return;
+      }
+
+      const deleteButton = event.target.closest('[data-delete-publicacion]');
+      if (deleteButton) {
+        const publicacionId = Number(deleteButton.getAttribute('data-delete-publicacion'));
+        const card = deleteButton.closest('[data-publicacion-id]');
+        if (!publicacionId || !card) return;
+        deletePublicacion(publicacionId, card).catch((error) => {
+          showToast(error instanceof Error ? error.message : 'No se pudo eliminar la publicación.', 'err');
+        });
+        return;
+      }
+
+      const target = event.target.closest('[data-save-publicacion]');
+      if (!target) return;
+      const publicacionId = Number(target.getAttribute('data-save-publicacion'));
+      const card = target.closest('[data-publicacion-id]');
+      if (!publicacionId || !card) return;
+      savePublicacion(publicacionId, card).catch((error) => {
+        showToast(error instanceof Error ? error.message : 'No se pudo guardar la publicación.', 'err');
+      });
+    });
+
+    document.getElementById('transferBtn').addEventListener('click', () => {
+      showToast('Transferencia iniciada en modo demo. En una integración real aquí conectaríamos la pasarela o payout.', 'ok');
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.clearSession();
+      window.location.href = '/';
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshVisibleEtas();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (etaRefreshTimer != null) {
+        window.clearInterval(etaRefreshTimer);
+        etaRefreshTimer = null;
+      }
+    });
+
+    ensureEtaAutoRefresh();
+
+    Promise.all([loadProfile(), loadOrders(), loadPublicaciones()]).catch((error) => {
+      out.hidden = false;
+      out.classList.add('err');
+      out.textContent = error instanceof Error ? error.message : 'No se pudo cargar el perfil.';
+    });
+  </script>
+{% endblock %}
