@@ -1,192 +1,1265 @@
+{% load static %}
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CUCU - Demo</title>
+  <title>CUCU</title>
   <meta name="color-scheme" content="light" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@400;500;700;800&display=swap');
+
     :root {
-      --bg: Canvas;
-      --fg: CanvasText;
-      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
-      --border: color-mix(in srgb, CanvasText 12%, Canvas);
-      --card: color-mix(in srgb, CanvasText 4%, Canvas);
-      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
-      --radius: 14px;
-      --gap: 14px;
+      --ink: #1f2430;
+      --muted: #6f7483;
+      --line: rgba(31, 36, 48, 0.08);
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-soft: #fffaf5;
+      --paper: #fcf8f3;
+      --accent: #ff6a1a;
+      --accent-deep: #f25c10;
+      --accent-soft: #fff1e7;
+      --green: #5aa851;
+      --green-soft: #eef8eb;
+      --shadow: 0 16px 42px rgba(31, 36, 48, 0.08);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --wrap: 1080px;
     }
+
     * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
-      background: Canvas;
-      background: color-mix(in srgb, LinkText 12%, Canvas);
-      color: var(--fg);
-      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top center, rgba(255, 106, 26, 0.08), transparent 26%),
+        linear-gradient(180deg, #fffdfa 0%, #fcf8f3 54%, #fffdfb 100%);
+      font-family: 'Manrope', sans-serif;
     }
-    a { color: LinkText; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .wrap {
-      max-width: 900px;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .shell {
+      width: min(var(--wrap), calc(100vw - 36px));
       margin: 0 auto;
-      padding: 28px 16px;
     }
-    .header {
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 253, 250, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(31, 36, 48, 0.05);
+    }
+
+    .nav {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
-      gap: var(--gap);
-      margin-bottom: 16px;
+      gap: 18px;
+      min-height: 78px;
     }
-    .title {
-      margin: 0;
-      letter-spacing: -0.02em;
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
     }
-    .subtitle {
-      margin: 6px 0 0;
-      color: var(--muted);
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      box-shadow: 0 8px 18px rgba(242, 92, 16, 0.22);
+      flex: 0 0 auto;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--gap);
-      margin-top: 18px;
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      color: #474d5c;
+      font-size: 14px;
+      font-weight: 700;
     }
-    @media (max-width: 720px) {
-      .grid { grid-template-columns: 1fr; }
+
+    .nav-link {
+      position: relative;
+      padding: 8px 0;
     }
-    .card {
-      border: 1px solid var(--border);
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -14px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
     }
-    .card h2 {
-      margin: 0 0 6px;
-      font-size: 18px;
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    .card p { margin: 0 0 12px; color: var(--muted); }
+
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 6%, Canvas);
-      color: var(--fg);
-      font-weight: 600;
-      text-decoration: none;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      cursor: pointer;
     }
-    .btn:hover { text-decoration: none; filter: brightness(1.03); }
-    .note {
-      margin-top: 16px;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1px dashed var(--border);
-      color: var(--muted);
-      background: color-mix(in srgb, CanvasText 3%, Canvas);
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(242, 92, 16, 0.2);
     }
-    .status {
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+      box-shadow: 0 8px 24px rgba(31, 36, 48, 0.04);
+    }
+
+    .tool-link {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 10px;
+      min-height: 52px;
+      padding: 0 18px;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      color: var(--muted);
-      font-size: 13px;
-      white-space: nowrap;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(31, 36, 48, 0.04);
     }
-    .dot {
-      width: 10px;
-      height: 10px;
+
+    .tool-link.icon-only {
+      position: relative;
+      justify-content: center;
+      width: 56px;
+      min-width: 56px;
+      padding: 0;
       border-radius: 999px;
-      background: color-mix(in srgb, CanvasText 18%, Canvas);
-      border: 1px solid var(--border);
     }
-    .dot.on { background: color-mix(in srgb, Green 55%, Canvas); border-color: color-mix(in srgb, Green 40%, var(--border)); }
-    .btn.secondary {
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      font-weight: 600;
+
+    .tool-icon {
+      width: 20px;
+      height: 20px;
+      color: #2d3340;
     }
-    .actions {
+
+    .tool-badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tool-link.icon-only .tool-badge {
+      position: absolute;
+      top: 4px;
+      right: 3px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      box-shadow: 0 0 0 4px #fff;
+    }
+
+    .hero {
+      padding: 18px 0 22px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.02fr 0.98fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero-copy {
+      padding: 20px 0 6px;
+    }
+
+    .hero-title {
+      margin: 0;
+      max-width: 8.4ch;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(40px, 5.6vw, 62px);
+      line-height: 0.98;
+      letter-spacing: -0.06em;
+    }
+
+    .hero-title .accent {
+      color: var(--accent-deep);
+    }
+
+    .hero-lead {
+      max-width: 34ch;
+      margin: 18px 0 0;
+      color: #505664;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .hero-cta {
       display: flex;
       flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .hero-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 16px;
+      color: #5d6372;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hero-highlights span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-highlights span::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 106, 26, 0.1);
+    }
+
+    .hero-media {
+      position: relative;
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .hero-blob {
+      position: relative;
+      width: min(100%, 470px);
+      min-height: 420px;
+      border-radius: 42px;
+      overflow: hidden;
+      box-shadow: 0 24px 56px rgba(31, 36, 48, 0.12);
+    }
+
+    .hero-photo {
+      position: relative;
+      width: 100%;
+      height: 420px;
+      overflow: hidden;
+      border-radius: 42px;
+      background: #f3e4d6;
+    }
+
+    .hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+
+    .hero-tag {
+      display: none;
+    }
+
+    .hero-tag-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .hero-tag strong {
+      display: block;
+      font-size: 16px;
+      letter-spacing: -0.03em;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .hero-tag span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hero-spark {
+      position: absolute;
+      color: var(--accent);
+      font-size: 40px;
+      line-height: 1;
+      opacity: 0.9;
+      user-select: none;
+    }
+
+    .hero-spark.left {
+      display: none;
+    }
+
+    .hero-spark.right {
+      display: none;
+    }
+
+    .section {
+      padding: 8px 0 26px;
+    }
+
+    .active-order-band {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 22px;
+      margin: 8px 0 18px;
+      background: linear-gradient(135deg, #fff2e8, #fffaf4);
+      border: 1px solid rgba(255, 106, 26, 0.12);
+      border-radius: 24px;
+      box-shadow: 0 16px 42px rgba(31, 36, 48, 0.07);
+    }
+
+    .active-order-band[hidden] {
+      display: none !important;
+    }
+
+    .active-order-copy strong {
+      display: block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    .active-order-copy p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .active-order-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      color: #4f5563;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .active-order-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 106, 26, 0.12);
+    }
+
+    .section-title {
+      margin: 0 0 18px;
+      text-align: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(28px, 3.8vw, 42px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .step-card,
+    .feature-card,
+    .cta-band,
+    .footer-panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(31, 36, 48, 0.06);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .step-card {
+      padding: 22px 18px;
+      text-align: center;
+    }
+
+    .icon-ring {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      border-radius: 999px;
+      background: #fff5ee;
+      color: var(--accent-deep);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(255, 106, 26, 0.08);
+    }
+
+    .step-card h3,
+    .feature-card h3,
+    .cta-band h3,
+    .footer-brand {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      letter-spacing: -0.04em;
+    }
+
+    .step-card p,
+    .feature-card p,
+    .footer-copy,
+    .footer-list a,
+    .cta-band p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .feature-card {
+      display: grid;
+      grid-template-columns: 1fr 190px;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    .feature-card.buy {
+      padding: 22px 22px 0;
+    }
+
+    .feature-card.sell {
+      padding: 22px;
+    }
+
+    .feature-copy {
+      padding-bottom: 18px;
+    }
+
+    .feature-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+    }
+
+    .feature-badge.green {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .check-list {
+      display: grid;
       gap: 10px;
-      margin-top: 12px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #4b5261;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .check-list li::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 106, 26, 0.1);
+      flex: 0 0 auto;
+    }
+
+    .check-list.green li::before {
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(90, 168, 81, 0.12);
+    }
+
+    .phone-wrap {
+      align-self: end;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 0 0 4px;
+    }
+
+    .phone {
+      width: 138px;
+      height: 274px;
+      border-radius: 30px;
+      border: 8px solid #171a22;
+      background: #ffffff;
+      box-shadow: 0 20px 28px rgba(31, 36, 48, 0.12);
+      overflow: hidden;
+      position: relative;
+      transform: rotate(10deg) translateY(8px);
+    }
+
+    .phone::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 58px;
+      height: 6px;
+      border-radius: 999px;
+      background: #171a22;
+      transform: translateX(-50%);
+    }
+
+    .phone-screen {
+      padding: 20px 10px 10px;
+      display: grid;
+      gap: 8px;
+      height: 100%;
+      background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+    }
+
+    .phone-bar {
+      height: 14px;
+      border-radius: 999px;
+      background: #f4efe9;
+    }
+
+    .phone-card {
+      border-radius: 16px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid rgba(31, 36, 48, 0.06);
+      box-shadow: 0 10px 18px rgba(31, 36, 48, 0.06);
+    }
+
+    .phone-card img {
+      width: 100%;
+      height: 62px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .phone-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: -0.01em;
+    }
+
+    .phone-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .feature-photo {
+      overflow: hidden;
+      border-radius: 18px;
+      min-height: 100%;
+    }
+
+    .feature-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cta-band {
+      margin-top: 16px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: linear-gradient(135deg, #fff1e6, #fff7f1);
+    }
+
+    .cta-band p {
+      margin-top: 6px;
+      max-width: 40ch;
+    }
+
+    .footer {
+      padding: 4px 0 22px;
+    }
+
+    .footer-panel {
+      padding: 18px 0 10px;
+      overflow: hidden;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, 1fr) 0.9fr;
+      gap: 14px;
+      padding: 0 24px 16px;
+      border-bottom: 1px solid rgba(31, 36, 48, 0.06);
+    }
+
+    .footer-brand-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .footer-brand-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #2a303c;
+      margin-bottom: 10px;
+    }
+
+    .footer-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .social-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .social-link {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: #fff;
+    }
+
+    .footer-bottom {
+      padding: 10px 24px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .feature-grid,
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-media,
+      .hero-blob {
+        min-height: 360px;
+      }
+
+      .hero-blob {
+        width: 100%;
+        border-radius: 34px;
+      }
+
+      .hero-photo {
+        height: 360px;
+        border-radius: 34px;
+      }
+
+      .feature-card {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-photo {
+        min-height: 220px;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .nav {
+        padding: 14px 0;
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav-center,
+      .nav-actions {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .hero {
+        padding-top: 12px;
+      }
+
+      .hero-copy {
+        padding-top: 18px;
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-band {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .active-order-band {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(var(--wrap), calc(100vw - 20px));
+      }
+
+      .hero-title {
+        font-size: 48px;
+      }
+
+      .hero-lead {
+        font-size: 18px;
+      }
+
+      .hero-blob {
+        min-height: 360px;
+      }
+
+      .hero-photo {
+        height: 320px;
+        border-radius: 28px;
+      }
+
+      .hero-spark {
+        display: none;
+      }
+
+      .step-card,
+      .feature-card.buy,
+      .feature-card.sell,
+      .cta-band,
+      .footer-panel {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .footer-grid,
+      .footer-bottom {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="header">
-      <div>
-        <h1 class="title">CUCU (Demo)</h1>
-        <p class="subtitle">Regístrate o inicia sesión para ingresar.</p>
-      </div>
-      <div class="status" id="status">
-        <span class="dot" id="dot" aria-hidden="true"></span>
-        <span id="statusText">Sin sesión</span>
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>CUCU</span>
+      </a>
+
+      <nav class="nav-center" aria-label="Navegación principal">
+        <a class="nav-link active" href="/">Inicio</a>
+        <a class="nav-link" href="/ui/pedido/">Compra</a>
+        <a class="nav-link" href="/ui/publicar/">Vende</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div id="guestActions" class="nav-actions">
+          <a class="btn btn-secondary" href="/ui/login/">Iniciar sesión</a>
+          <a class="btn btn-primary" href="/ui/registro/">Regístrate</a>
+        </div>
+        <div id="userActions" class="nav-actions hidden">
+          <a class="tool-link icon-only" id="cartLink" href="/ui/carrito/" aria-label="Carrito">
+            <svg class="tool-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8h10l-1 9H9L8 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 8a2 2 0 1 1 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.5 20a1 1 0 1 0 0 .01M16.5 20a1 1 0 1 0 0 .01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span class="tool-badge" id="cartCount">0</span>
+          </a>
+          <a class="tool-link" href="/ui/perfil/">Perfil</a>
+        </div>
       </div>
     </div>
+  </header>
 
-    <section class="grid" aria-label="Acceso">
-      <article class="card" id="cardAuth">
-        <h2>Acceso</h2>
-        <p>Crea tu cuenta o inicia sesión para continuar con el flujo de Pedido y Pago.</p>
-        <div class="actions">
-          <a class="btn" href="/ui/registro/">Crear cuenta</a>
-          <a class="btn secondary" href="/ui/login/">Iniciar sesión</a>
-        </div>
-      </article>
+  <main>
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <h1 class="hero-title">Compra <span class="accent">cerca.</span><br /><span class="accent">Vende fresco.</span><br />Mueve tu barrio con CUCU.</h1>
+          <p class="hero-lead">Descubre comida casera hecha con amor o vende tus platos en minutos.</p>
 
-      <article class="card" id="cardApp" hidden>
-        <h2>Bienvenido</h2>
-        <p>Sesión detectada. Puedes entrar directo al flujo.</p>
-        <div class="actions">
-          <a class="btn" href="/ui/pedido/">Crear Pedido</a>
-          <a class="btn secondary" href="/ui/aceptar-pedido/">Aceptar Pedido</a>
-          <a class="btn secondary" href="/ui/notificaciones/">Notificaciones</a>
-          <button class="btn secondary" id="logoutBtn" type="button">Cerrar sesión</button>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="/ui/pedido/">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7h10l-1 10H8L7 7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7a3 3 0 1 1 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Explorar comida
+            </a>
+            <a class="btn btn-secondary" href="/ui/publicar/">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 1 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 12v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Vender comida
+            </a>
+          </div>
+
+          <div class="hero-highlights">
+            <span>Rápido</span>
+            <span>Sin costos escondidos</span>
+            <span>En tu barrio</span>
+          </div>
         </div>
-      </article>
+
+        <div class="hero-media">
+          <div class="hero-blob">
+            <div class="hero-photo">
+              <img src="{% static 'images/scene-home.png' %}" alt="Plato casero de CUCU" />
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <div class="note" id="notePub" hidden>
-      Para crear pedidos debes tener una <strong>Publicación</strong> existente (puedes crearla desde <a href="/admin/">/admin</a>). El <a href="/admin/">Admin</a> usa sesión de Django (no el token).
-    </div>
+    <section class="section" id="como-funciona">
+      <div class="shell">
+        <div id="activeOrderBand" class="active-order-band" hidden>
+          <div class="active-order-copy">
+            <strong>Tu pedido sigue en camino</strong>
+            <p id="activeOrderText">Puedes volver al seguimiento en cualquier momento hasta que la entrega termine.</p>
+            <div class="active-order-meta">
+              <span class="active-order-dot" aria-hidden="true"></span>
+              <span id="activeOrderMeta">Pedido activo</span>
+            </div>
+          </div>
+          <a id="activeOrderLink" class="btn btn-primary" href="/ui/seguimiento/">Seguir mi pedido</a>
+        </div>
+
+        <h2 class="section-title">¿Cómo funciona?</h2>
+        <div class="steps-grid">
+          <article class="step-card">
+            <div class="icon-ring">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5a6 6 0 1 0 3.9 10.57l3.76 3.76 1.41-1.41-3.76-3.76A6 6 0 0 0 11 5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Busca comida cerca</h3>
+            <p>Explora platos caseros en tu zona.</p>
+          </article>
+
+          <article class="step-card">
+            <div class="icon-ring">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Compra o vende</h3>
+            <p>Elige, paga y recibe. O publica tus platos.</p>
+          </article>
+
+          <article class="step-card">
+            <div class="icon-ring">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor"/></svg>
+            </div>
+            <h3>Listo en minutos</h3>
+            <p>Conecta con tu comunidad de forma simple.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="shell feature-grid">
+        <article class="feature-card buy">
+          <div class="feature-copy">
+            <div class="feature-badge">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7h10l-1 10H8L7 7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7a3 3 0 1 1 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Quiero comprar</h3>
+            <ul class="check-list">
+              <li>Explora platos por ubicación</li>
+              <li>Filtra por precio y categoría</li>
+              <li>Compra de forma segura</li>
+            </ul>
+            <div class="hero-cta" style="margin-top:24px">
+              <a class="btn btn-primary" href="/ui/pedido/">Explorar ahora →</a>
+            </div>
+          </div>
+
+          <div class="phone-wrap">
+            <div class="phone" aria-hidden="true">
+              <div class="phone-screen">
+                <div class="phone-bar"></div>
+                <div class="phone-card">
+                  <img src="{% static 'images/pozole.png' %}" alt="" />
+                  <strong>Tacos caseros</strong>
+                  <span>$65</span>
+                </div>
+                <div class="phone-card">
+                  <img src="{% static 'images/carnitas.png' %}" alt="" />
+                  <strong>Bowl saludable</strong>
+                  <span>$89</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="feature-card sell" id="comunidad">
+          <div class="feature-copy">
+            <div class="feature-badge green">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 1 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Quiero vender</h3>
+            <ul class="check-list green">
+              <li>Publica tus platos en minutos</li>
+              <li>Gestiona pedidos fácilmente</li>
+              <li>Llega a más clientes del barrio</li>
+            </ul>
+            <div class="hero-cta" style="margin-top:24px">
+              <a class="btn btn-secondary" href="/ui/publicar/">Empieza a vender →</a>
+            </div>
+          </div>
+
+          <div class="feature-photo">
+            <img src="{% static 'images/scene-seller.png' %}" alt="Preparación de comida casera para vender en CUCU" />
+          </div>
+        </article>
+      </div>
+
+      <div class="shell" id="guestLandingCta">
+        <div class="cta-band">
+          <div>
+            <h3>Únete a CUCU y mueve tu barrio</h3>
+            <p>Regístrate gratis y empieza a comprar o vender hoy mismo.</p>
+          </div>
+          <a class="btn btn-primary" href="/ui/registro/">Crear cuenta gratis</a>
+        </div>
+      </div>
+    </section>
   </main>
 
+  <footer class="footer">
+    <div class="shell footer-panel">
+      <div class="footer-grid">
+        <div class="footer-brand-wrap">
+          <div class="footer-brand-row">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <div class="footer-brand">CUCU</div>
+          </div>
+          <div class="footer-copy">Hecho para tu barrio, hecho con amor.</div>
+        </div>
+
+        <div>
+          <div class="footer-title">Explorar</div>
+          <div class="footer-list">
+            <a href="#menu">Menú</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#comunidad">Comunidad</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-title">Vender</div>
+          <div class="footer-list">
+            <a href="/ui/publicar/">Publicar plato</a>
+            <a href="/ui/perfil/">Mis ventas</a>
+            <a href="/ui/notificaciones/">Soporte</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-title">Legal</div>
+          <div class="footer-list">
+            <a href="#">Términos</a>
+            <a href="#">Privacidad</a>
+            <a href="#">Contacto</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-title">Síguenos</div>
+          <div class="social-row">
+            <a class="social-link" href="#" aria-label="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+            </a>
+            <a class="social-link" href="#" aria-label="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13.5 20v-7h2.3l.4-3h-2.7V8.1c0-.9.3-1.6 1.7-1.6H16V3.8c-.3 0-.9-.1-1.8-.1-1.8 0-3.1 1.1-3.1 3.3V10H9v3h2.3v7h2.2Z" fill="currentColor"/></svg>
+            </a>
+            <a class="social-link" href="#" aria-label="WhatsApp">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 11.8A8 8 0 0 1 8.3 18.9L4 20l1.2-4.2A8 8 0 1 1 20 11.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9.5c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4l.6 1.5c.1.3 0 .4-.1.6l-.4.5c-.1.1-.2.3-.1.5.2.4.8 1.3 1.8 1.8.2.1.4 0 .5-.1l.5-.4c.2-.1.3-.2.6-.1l1.5.6c.3.1.4.3.4.5v.5c0 .2 0 .4-.5.6-.4.2-1.3.3-2.8-.5-1.4-.8-2.5-2-3.2-3.2-.7-1.5-.7-2.4-.4-2.8Z" fill="currentColor"/></svg>
+            </a>
+            <a class="social-link" href="#" aria-label="X">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18.5 4H21l-5.4 6.2L22 20h-5l-3.9-5.6L8.2 20H5.7l5.8-6.6L5 4h5.1L13.6 9 18.5 4Zm-1 14.2h1.4L9.4 5.7H8Z" fill="currentColor"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">© 2025 CUCU. Todos los derechos reservados.</div>
+    </div>
+  </footer>
+
   <script>
-    const token = localStorage.getItem('token');
-    const cardAuth = document.getElementById('cardAuth');
-    const cardApp = document.getElementById('cardApp');
-    const statusText = document.getElementById('statusText');
-    const dot = document.getElementById('dot');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const notePub = document.getElementById('notePub');
-
-    function refresh() {
-      const t = localStorage.getItem('token');
-      const loggedIn = Boolean(t);
-      cardAuth.hidden = loggedIn;
-      cardApp.hidden = !loggedIn;
-      if (notePub) notePub.hidden = !loggedIn;
-      statusText.textContent = loggedIn ? 'Sesión activa' : 'Sin sesión';
-      dot.classList.toggle('on', loggedIn);
-    }
-
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        refresh();
+    (async function () {
+      let token = localStorage.getItem('token');
+      const refresh = localStorage.getItem('refresh');
+      const lastPedidoId = localStorage.getItem('last_pedido_id');
+      const activeOrderBand = document.getElementById('activeOrderBand');
+      const activeOrderLink = document.getElementById('activeOrderLink');
+      const activeOrderText = document.getElementById('activeOrderText');
+      const activeOrderMeta = document.getElementById('activeOrderMeta');
+      let cartSelection = {};
+      try {
+        const tokenValue = localStorage.getItem('token');
+        const payloadSegment = String(tokenValue || '').split('.')[1] || '';
+        const normalized = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized ? normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=') : '';
+        const payload = padded ? JSON.parse(decodeURIComponent(Array.from(window.atob(padded), (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join(''))) : null;
+        const userRef = String(payload?.email || payload?.user_email || payload?.user_id || payload?.userId || payload?.id || payload?.sub || localStorage.getItem('current_user_ref') || 'guest').trim() || 'guest';
+        localStorage.setItem('current_user_ref', userRef);
+        const raw = localStorage.getItem(`cart_selection:${userRef}`) || localStorage.getItem('cart_selection') || '{}';
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') cartSelection = parsed;
+        if (!localStorage.getItem(`cart_selection:${userRef}`) && localStorage.getItem('cart_selection')) {
+          localStorage.setItem(`cart_selection:${userRef}`, JSON.stringify(cartSelection));
+          localStorage.removeItem('cart_selection');
+        }
+      } catch {
+        cartSelection = {};
+      }
+      const safeSelection = {};
+      Object.entries(cartSelection || {}).forEach(([key, value]) => {
+        const id = Number(key);
+        const qty = Math.floor(Number(value || 0));
+        if (!Number.isFinite(id) || id <= 0) return;
+        if (!Number.isFinite(qty) || qty <= 0) return;
+        safeSelection[String(id)] = qty;
       });
-    }
+      const count = Object.keys(safeSelection).length;
 
-    refresh();
+      const guestActions = document.getElementById('guestActions');
+      const userActions = document.getElementById('userActions');
+      const guestLandingCta = document.getElementById('guestLandingCta');
+      const cartCount = document.getElementById('cartCount');
+      const cartLink = document.getElementById('cartLink');
+
+      if (cartCount) {
+        cartCount.textContent = count > 0 ? String(count) : '';
+        cartCount.hidden = count === 0;
+      }
+      if (cartLink) cartLink.href = '/ui/carrito/';
+
+      if (!token && refresh) {
+        const response = await fetch('/api/token/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (response.ok && payload?.access) {
+          token = String(payload.access);
+          localStorage.setItem('token', token);
+          if (payload.refresh) localStorage.setItem('refresh', String(payload.refresh));
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh');
+        }
+      }
+
+      if (token) {
+        guestActions.classList.add('hidden');
+        userActions.classList.remove('hidden');
+        if (guestLandingCta) guestLandingCta.classList.add('hidden');
+      } else {
+        guestActions.classList.remove('hidden');
+        userActions.classList.add('hidden');
+        if (guestLandingCta) guestLandingCta.classList.remove('hidden');
+      }
+
+      const hideActiveOrderBand = () => {
+        if (!activeOrderBand) return;
+        activeOrderBand.hidden = true;
+        activeOrderBand.style.display = 'none';
+      };
+
+      const showActiveOrderBand = (pedidoId, estadoText) => {
+        if (!activeOrderBand || !activeOrderLink || !activeOrderText || !activeOrderMeta) return;
+        const eta = window.CUCUTracking?.getEtaLabel?.(pedidoId);
+        activeOrderLink.href = `/ui/seguimiento/?pedido_id=${encodeURIComponent(String(pedidoId))}`;
+        activeOrderText.textContent = eta
+          ? `Retoma el seguimiento de tu pedido #${pedidoId}. ETA actual: ${eta}.`
+          : `Retoma el seguimiento de tu pedido #${pedidoId} sin perder el recorrido actual.`;
+        activeOrderMeta.textContent = estadoText
+          ? `Pedido #${pedidoId} · ${estadoText}${eta ? ` · ETA ${eta}` : ''}`
+          : `Pedido #${pedidoId} activo${eta ? ` · ETA ${eta}` : ''}`;
+        activeOrderBand.style.display = '';
+        activeOrderBand.hidden = false;
+      };
+
+      const isTerminalOrderState = (estado) => {
+        const normalized = String(estado || '').trim().toUpperCase();
+        return normalized === 'ENTREGADO' || normalized === 'FINALIZADO' || normalized === 'COMPLETADO' || normalized === 'CANCELADO';
+      };
+
+      const readTrackingPlan = (pedidoId) => {
+        try {
+          const raw = localStorage.getItem(`tracking_plan_${pedidoId}`) || '';
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const markLocalDelivered = (pedidoId) => {
+        localStorage.setItem(`pedido_status_${pedidoId}`, 'delivered');
+        const currentLastPedidoId = localStorage.getItem('last_pedido_id');
+        if (currentLastPedidoId === String(pedidoId)) {
+          localStorage.removeItem('last_pedido_id');
+        }
+      };
+
+      const syncDeliveredOrderIfExpired = async (pedidoId, authToken) => {
+        const plan = readTrackingPlan(pedidoId);
+        const endsAt = Number(plan?.endsAt || plan?.completedAt || 0);
+        if (!Number.isFinite(endsAt) || endsAt <= 0 || Date.now() < endsAt) {
+          return false;
+        }
+
+        if (String(plan?.status || '').toLowerCase() === 'delivered') {
+          markLocalDelivered(pedidoId);
+          return true;
+        }
+
+        if (!authToken) {
+          markLocalDelivered(pedidoId);
+          return true;
+        }
+
+        try {
+          const response = await fetch(`/api/pedidos/${encodeURIComponent(String(pedidoId))}/entregar`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${authToken}` },
+          });
+          if (!response.ok) return false;
+          plan.status = 'delivered';
+          plan.completedAt = Date.now();
+          localStorage.setItem(`tracking_plan_${pedidoId}`, JSON.stringify(plan));
+          markLocalDelivered(pedidoId);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      if (lastPedidoId) {
+        const expiredTrackedOrder = await syncDeliveredOrderIfExpired(lastPedidoId, token);
+        if (expiredTrackedOrder) {
+          hideActiveOrderBand();
+        }
+      }
+
+      if (!token) {
+        hideActiveOrderBand();
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/mis-pedidos', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok || !Array.isArray(payload)) {
+          hideActiveOrderBand();
+          return;
+        }
+
+        const activePedido = payload.find((pedido) => !isTerminalOrderState(pedido?.estado));
+        if (!activePedido?.id) {
+          if (lastPedidoId) {
+            localStorage.setItem(`pedido_status_${lastPedidoId}`, 'delivered');
+            if (localStorage.getItem('last_pedido_id') === String(lastPedidoId)) {
+              localStorage.removeItem('last_pedido_id');
+            }
+          }
+          hideActiveOrderBand();
+          return;
+        }
+
+        localStorage.setItem('last_pedido_id', String(activePedido.id));
+        showActiveOrderBand(activePedido.id, String(activePedido.estado || 'Activo').trim().toUpperCase());
+      } catch {
+        hideActiveOrderBand();
+      }
+    })();
   </script>
 </body>
 </html>

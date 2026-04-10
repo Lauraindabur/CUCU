@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from common.exceptions import ConflictError
 
-from ..models import Transaccion
+from ..infrastructure.models import Transaccion
 
 
 @dataclass

@@ -10,6 +10,10 @@ django-admin startproject config . es para crear la carpeta de config, y tiene l
 
 python manage.py runserver ejecutar y montar el servidor
 
+Configuración local opcional:
+- Crea un archivo `.env.local` en la raíz del proyecto.
+- Para habilitar Google Maps en seguimiento y publicar, define `GOOGLE_MAPS_API_KEY=tu_api_key`.
+
 Estos comandos fueron para crear modulos de la aplicación, ya con los archivos necesarios para agregar la logica del modulo 
 python manage.py startapp accounts
 python manage.py startapp trust
@@ -104,13 +108,5 @@ views.py -> Reune los metodos anteriores solo para usarlos de acuerdo al get/pos
         MisNotificacionesView() -> GET /api/notificaciones/ — obtiene el usuario del token JWT, busca sus notificaciones,
             devuelve lista de notis en JSON
 
-ACEPTAR PEDIDO 
-
-Solo el vendedor puede aceptar: AcceptOrderService.accept_order() verifica que pedido.publicacion.usuario_id == user.id, si no lanza PermissionDeniedError -> 403 en services.py y views.py.
-Solo se aceptan pedidos PENDIENTE: si el estado no es PENDIENTE lanza ValidationError -> 400 en services.py.
-Cambia estado a ACEPTADO: pedido.estado = "ACEPTADO" y pedido.save(update_fields=["estado"]) en services.py.
-
-Al aceptar se notifica al comprador: AcceptOrderService.accept_order() llama a NotificacionService.enviar() con el usuario que hizo el pedido y mensaje "Tu pedido fue aceptado" en services.py.
---------------------------------------------
 
 -->

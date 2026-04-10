@@ -1,150 +1,34 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Notificaciones</title>
-  <meta name="color-scheme" content="light" />
+{% extends "base_app.html" %}
 
-  <!-- Estilo termporal para cada implementación -->
-  <style>
-    :root {
-      --bg: Canvas;
-      --fg: CanvasText;
-      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
-      --border: color-mix(in srgb, CanvasText 12%, Canvas);
-      --card: color-mix(in srgb, CanvasText 4%, Canvas);
-      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
-      --radius: 14px;
-      --gap: 12px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: color-mix(in srgb, LinkText 12%, Canvas);
-      color: var(--fg);
-      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    a { color: LinkText; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px; }
-    .top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--gap);
-      margin-bottom: 14px;
-    }
-    h1 { margin: 0; letter-spacing: -0.02em; }
-    .hint { margin: 6px 0 0; color: var(--muted); }
-    .card {
-      border: 1px solid var(--border);
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 6%, Canvas);
-      color: var(--fg);
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .btn:hover { text-decoration: none; filter: brightness(1.03); }
-    .note {
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1px dashed var(--border);
-      color: var(--muted);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-    }
-    .list { display: grid; gap: var(--gap); margin-top: 10px; }
-    .notif {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: start;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      transition: opacity 0.2s;
-    }
-    .notif.leida { opacity: 0.5; }
-    .notif .msg { font-weight: 600; }
-    .notif .meta { margin-top: 4px; font-size: 13px; color: var(--muted); }
-    .notif .tipo {
-      display: inline-flex;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 12px;
-      font-weight: 700;
-      background: color-mix(in srgb, CanvasText 4%, Canvas);
-    }
-    button.marcar {
-      padding: 6px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 6%, Canvas);
-      color: var(--fg);
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-    button.marcar:hover { filter: brightness(1.03); }
-    button.marcar:disabled { opacity: 0.4; cursor: not-allowed; }
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-    .counter {
-      font-size: 13px;
-      color: var(--muted);
-    }
-  </style>
-</head>
-
-<!-- Comienzo del body temporal -->
-<body>
-  <main class="wrap">
-    <div class="top">
-      <div>
-        <h1>Notificaciones</h1>
-        <p class="hint">Tus notificaciones más recientes.</p>
-      </div>
-      <a class="btn" href="/">Inicio</a>
-    </div>
-
-    <section class="card">
+{% block title %}Notificaciones | CUCU{% endblock %}
+{% block eyebrow %}Actividad{% endblock %}
+{% block page_title %}Tus <span>notificaciones</span>{% endblock %}
+{% block page_lead %}Aquí convergen las señales del sistema: nuevos pedidos, confirmaciones y eventos importantes dentro del flujo de CUCU.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-primary" href="/ui/aceptar-pedido/">Aceptar pedido</a>
+  <a class="btn btn-secondary" href="/">Inicio</a>
+{% endblock %}
+{% block hero_points %}
+  <div class="hero-point"><span class="hero-point-badge">•</span><div><strong>Pedidos</strong><p>Recibe avisos cuando alguien compra uno de tus platos.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">✓</span><div><strong>Lectura</strong><p>Marca rápidamente lo que ya revisaste sin salir del flujo.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">↻</span><div><strong>Actualiza</strong><p>Recarga la lista cuando quieras revisar actividad reciente.</p></div></div>
+{% endblock %}
+{% block section_title %}Centro de notificaciones{% endblock %}
+{% block section_hint %}La actividad del producto aparece aquí con el mismo lenguaje visual del resto de la aplicación.{% endblock %}
+{% block content %}
       <div class="toolbar">
         <span class="counter" id="counter">Cargando...</span>
-        <button class="btn" id="reloadBtn" type="button">Recargar</button>
+        <button class="btn btn-secondary" id="reloadBtn" type="button">Recargar</button>
       </div>
 
       <div id="list" class="list" aria-live="polite">
         <div class="note">Cargando notificaciones...</div>
       </div>
-    </section>
-  </main>
-
+{% endblock %}
+{% block page_scripts %}
   <script>
-    // Si no hay sesión, redirigir a login
-    const token = localStorage.getItem('token');
-    if (!token) {
-      const next = encodeURIComponent(window.location.pathname);
-      window.location.href = `/ui/login/?next=${next}`;
-    }
+    const auth = window.CUCUAuth;
+    auth.ensureAuthenticatedSession();
 
     const list = document.getElementById('list');
     const counter = document.getElementById('counter');
@@ -159,16 +43,15 @@
 
     async function marcarLeida(id, btn, row) {
       btn.disabled = true;
-      const t = localStorage.getItem('token');
-      const res = await fetch(`/api/notificaciones/${encodeURIComponent(id)}/leer/`, {
+      const result = await auth.authenticatedFetch(`/api/notificaciones/${encodeURIComponent(id)}/leer/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${t}` },
       });
+      if (!result) return;
+      const { response: res, payload: json } = result;
       if (res.ok) {
         row.classList.add('leida');
         btn.textContent = '✓ Leída';
       } else {
-        const json = await res.json().catch(() => ({}));
         btn.disabled = false;
         alert(json.error || 'No se pudo marcar como leída.');
       }
@@ -178,12 +61,9 @@
       list.innerHTML = '<div class="note">Cargando...</div>';
       counter.textContent = 'Cargando...';
 
-      const t = localStorage.getItem('token');
-      if (!t) return;
-
-      const res = await fetch('/api/notificaciones/', {
-        headers: { 'Authorization': `Bearer ${t}` },
-      });
+      const result = await auth.authenticatedFetch('/api/notificaciones/');
+      if (!result) return;
+      const { response: res, payload: data } = result;
 
       if (!res.ok) {
         list.innerHTML = `<div class="note">Error al cargar notificaciones (${res.status}).</div>`;
@@ -191,7 +71,6 @@
         return;
       }
 
-      const data = await res.json().catch(() => []);
       const notifs = Array.isArray(data) ? data : [];
 
       const noLeidas = notifs.filter(n => !n.leida).length;
@@ -236,5 +115,4 @@
     document.getElementById('reloadBtn').addEventListener('click', loadNotificaciones);
     loadNotificaciones();
   </script>
-</body>
-</html>
+{% endblock %}

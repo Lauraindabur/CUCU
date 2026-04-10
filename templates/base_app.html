@@ -1,0 +1,1047 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}CUCU{% endblock %}</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@400;500;700;800&display=swap');
+
+    :root {
+      --ink: #1f2430;
+      --muted: #6f7483;
+      --paper: #fcf8f3;
+      --paper-2: #fffdfa;
+      --line: rgba(31, 36, 48, 0.08);
+      --shadow: 0 18px 54px rgba(31, 36, 48, 0.08);
+      --orange: #ff6a1a;
+      --orange-deep: #f25c10;
+      --green: #1eae7a;
+      --green-soft: rgba(30, 174, 122, 0.14);
+      --slate: #2f3642;
+      --warn: #ff8f3d;
+      --warn-soft: rgba(255, 143, 61, 0.14);
+      --danger: #de5f58;
+      --danger-soft: rgba(222, 95, 88, 0.14);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --wrap: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top center, rgba(255, 106, 26, 0.08), transparent 26%),
+        linear-gradient(180deg, #fffdfa 0%, #fcf8f3 54%, #fffdfb 100%);
+      font-family: 'Manrope', sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(var(--wrap), calc(100vw - 36px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 253, 250, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(31, 36, 48, 0.05);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 88px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+      box-shadow: 0 8px 18px rgba(242, 92, 16, 0.22);
+      flex: 0 0 auto;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      color: #474d5c;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .nav-tools {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      position: relative;
+      padding: 8px 0;
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -14px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--orange);
+    }
+
+    .tool-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 8px 20px rgba(31, 36, 48, 0.04);
+    }
+
+    .tool-link.icon-only {
+      position: relative;
+      justify-content: center;
+      width: 56px;
+      min-width: 56px;
+      padding: 0;
+      border-radius: 999px;
+    }
+
+    .tool-icon {
+      width: 20px;
+      height: 20px;
+      color: #2d3340;
+    }
+
+    .tool-badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #fff1e7;
+      color: var(--orange-deep);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tool-link.icon-only .tool-badge {
+      position: absolute;
+      top: 4px;
+      right: 3px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      box-shadow: 0 0 0 4px #fff;
+    }
+
+    .page {
+      padding: 30px 0 42px;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .hero-panel,
+    .surface,
+    .tile,
+    .note,
+    .out,
+    .summary,
+    .bar {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-panel {
+      position: sticky;
+      top: 108px;
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #f3efe9;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .page-title {
+      position: relative;
+      z-index: 1;
+      margin: 18px 0 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(36px, 4.4vw, 54px);
+      line-height: 1;
+      letter-spacing: -0.06em;
+    }
+
+    .page-title span {
+      color: var(--orange-deep);
+    }
+
+    .page-lead {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+
+    .hero-actions,
+    .actions,
+    .toolbar,
+    .session-actions,
+    .search-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero-actions {
+      margin-top: 22px;
+    }
+
+    .hero-points {
+      display: grid;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .hero-point {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border-radius: 20px;
+        background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(24, 33, 47, 0.07);
+    }
+
+    .hero-point-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff2ec;
+      color: var(--orange-deep);
+      font-weight: 800;
+    }
+
+    .hero-point strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .hero-point p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .surface {
+      padding: 26px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 34px;
+      letter-spacing: -0.05em;
+    }
+
+    .section-hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    form { display: grid; gap: 16px; margin-top: 18px; }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      min-height: 56px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fffdfb;
+      color: var(--ink);
+      outline: none;
+      font: inherit;
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    textarea {
+      min-height: 138px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(236, 90, 45, 0.32);
+      box-shadow: 0 0 0 4px rgba(236, 90, 45, 0.07);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      cursor: pointer;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(255, 92, 43, 0.22);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .note,
+    .out,
+    .summary,
+    .bar,
+    .tile {
+      padding: 18px;
+      border-radius: 22px;
+      box-shadow: none;
+    }
+
+    .note {
+      margin-top: 16px;
+      color: var(--muted);
+        background: rgba(255, 255, 255, 0.9);
+      border-style: dashed;
+    }
+
+    .out {
+      margin-top: 16px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .ok { border-color: rgba(30, 174, 122, 0.35); background: rgba(30, 174, 122, 0.06); }
+    .err { border-color: rgba(222, 95, 88, 0.35); background: rgba(222, 95, 88, 0.06); }
+
+    .counter,
+    .hint,
+    .meta,
+    .muted {
+      color: var(--muted);
+    }
+
+    .list,
+    .catalog {
+      display: grid;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .tile {
+      background: #fcfbf8;
+    }
+
+    .badge,
+    .tipo {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(24,33,47,0.05);
+    }
+
+    .badge.pendiente { border-color: rgba(255, 143, 61, 0.34); color: #a95f19; background: var(--warn-soft); }
+    .badge.aceptado { border-color: rgba(30, 174, 122, 0.34); color: #147352; background: var(--green-soft); }
+
+    .map {
+      width: 100%;
+      min-height: 340px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: #f9f7f2;
+      overflow: hidden;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .pub,
+    .notif {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fcfbf8;
+    }
+
+    .notif.leida {
+      opacity: 0.58;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+      justify-items: end;
+    }
+
+    .items {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .profile-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .profile-top {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #fff2ec, #f8f5ef);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--orange-deep);
+    }
+
+    .profile-name {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fcfbf8;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      letter-spacing: -0.05em;
+      margin-top: 8px;
+    }
+
+    .order-card {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: #fcfbf8;
+    }
+
+    .order-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .quick-link-card {
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: #fcfbf8;
+    }
+
+    .quick-link-card h3 {
+      margin: 0 0 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .quick-link-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 1020px) {
+      .page-grid,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        padding: 14px 0;
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .row,
+      .pub,
+      .notif,
+      .profile-top {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid,
+      .quick-links {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links,
+      .nav-tools {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .surface,
+      .hero-panel,
+      .note,
+      .summary,
+      .bar,
+      .out,
+      .tile {
+        padding: 20px;
+        border-radius: 24px;
+      }
+    }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>CUCU</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a class="nav-link" data-nav="inicio" href="/">Inicio</a>
+        <a class="nav-link" data-nav="compra" href="/ui/pedido/">Compra</a>
+        <a class="nav-link" data-nav="vende" href="/ui/publicar/">Vende</a>
+      </nav>
+      <div class="nav-tools">
+        <a class="tool-link icon-only" id="cartLink" href="/ui/carrito/" aria-label="Carrito">
+          <svg class="tool-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8h10l-1 9H9L8 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 8a2 2 0 1 1 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.5 20a1 1 0 1 0 0 .01M16.5 20a1 1 0 1 0 0 .01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="tool-badge" id="cartCount">0</span>
+        </a>
+        <a class="tool-link" id="profileLink" href="/ui/perfil/">
+          <span>Perfil</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page shell">
+    <div class="page-grid">
+      <aside class="hero-panel">
+        <div class="eyebrow">{% block eyebrow %}CUCU{% endblock %}</div>
+        <h1 class="page-title">{% block page_title %}CUCU{% endblock %}</h1>
+        <p class="page-lead">{% block page_lead %}{% endblock %}</p>
+        <div class="hero-actions">{% block hero_actions %}{% endblock %}</div>
+        <div class="hero-points">{% block hero_points %}{% endblock %}</div>
+      </aside>
+
+      <section class="surface">
+        <h2 class="section-title">{% block section_title %}{% endblock %}</h2>
+        <p class="section-hint">{% block section_hint %}{% endblock %}</p>
+        {% block content %}{% endblock %}
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.CUCUAuth = (() => {
+      function clearSession() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('current_user_ref');
+      }
+
+      function redirectToLogin() {
+        clearSession();
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/ui/login/?next=${next}`;
+      }
+
+      async function refreshAccessToken() {
+        const refresh = localStorage.getItem('refresh');
+        if (!refresh) return null;
+
+        const response = await fetch('/api/token/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh }),
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload?.access) {
+          clearSession();
+          return null;
+        }
+
+        localStorage.setItem('token', String(payload.access));
+        if (payload.refresh) localStorage.setItem('refresh', String(payload.refresh));
+        return String(payload.access);
+      }
+
+      async function ensureAuthenticatedSession() {
+        const token = localStorage.getItem('token');
+        if (token) return token;
+
+        const refreshed = await refreshAccessToken();
+        if (refreshed) return refreshed;
+
+        redirectToLogin();
+        return null;
+      }
+
+      async function authenticatedFetch(url, options = {}, retry = true) {
+        const token = localStorage.getItem('token') || await refreshAccessToken();
+        if (!token) {
+          redirectToLogin();
+          return null;
+        }
+
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (response.status === 401 && retry) {
+          const refreshed = await refreshAccessToken();
+          if (!refreshed) {
+            redirectToLogin();
+            return null;
+          }
+
+          const retryResponse = await fetch(url, {
+            ...options,
+            headers: {
+              ...(options.headers || {}),
+              Authorization: `Bearer ${refreshed}`,
+            },
+          });
+          const retryPayload = await retryResponse.json().catch(() => null);
+          if (retryResponse.status === 401) {
+            redirectToLogin();
+            return null;
+          }
+          return { response: retryResponse, payload: retryPayload };
+        }
+
+        return { response, payload };
+      }
+
+      return {
+        clearSession,
+        redirectToLogin,
+        refreshAccessToken,
+        ensureAuthenticatedSession,
+        authenticatedFetch,
+      };
+    })();
+
+    window.CUCUStorage = (() => {
+      function decodeJwtPayload(token) {
+        try {
+          const [, payloadSegment] = String(token || '').split('.');
+          if (!payloadSegment) return null;
+          const normalized = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+          const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+          const binary = window.atob(padded);
+          const bytes = Array.from(binary, (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('');
+          return JSON.parse(decodeURIComponent(bytes));
+        } catch {
+          return null;
+        }
+      }
+
+      function resolveUserRef() {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const payload = decodeJwtPayload(token) || {};
+          const candidate = [payload.email, payload.user_email, payload.user_id, payload.userId, payload.id, payload.sub]
+            .map((value) => String(value || '').trim())
+            .find(Boolean);
+          if (candidate) {
+            localStorage.setItem('current_user_ref', candidate);
+            return candidate;
+          }
+        }
+
+        return String(localStorage.getItem('current_user_ref') || 'guest').trim() || 'guest';
+      }
+
+      function sanitizeSelection(selection) {
+        const safe = {};
+        Object.entries(selection || {}).forEach(([key, value]) => {
+          const id = Number(key);
+          const qty = Math.floor(Number(value || 0));
+          if (!Number.isFinite(id) || id <= 0) return;
+          if (!Number.isFinite(qty) || qty <= 0) return;
+          safe[String(id)] = qty;
+        });
+        return safe;
+      }
+
+      function getCartStorageKey() {
+        return `cart_selection:${resolveUserRef()}`;
+      }
+
+      function loadCartSelection() {
+        const scopedKey = getCartStorageKey();
+        try {
+          const scopedRaw = localStorage.getItem(scopedKey);
+          if (scopedRaw) {
+            const parsedScoped = JSON.parse(scopedRaw);
+            if (parsedScoped && typeof parsedScoped === 'object') return sanitizeSelection(parsedScoped);
+          }
+        } catch {
+          // ignore scoped cart parse errors
+        }
+
+        try {
+          const legacyRaw = localStorage.getItem('cart_selection');
+          if (!legacyRaw) return {};
+          const parsedLegacy = JSON.parse(legacyRaw);
+          if (!parsedLegacy || typeof parsedLegacy !== 'object') return {};
+          const safeLegacy = sanitizeSelection(parsedLegacy);
+          localStorage.setItem(scopedKey, JSON.stringify(safeLegacy));
+          localStorage.removeItem('cart_selection');
+          return safeLegacy;
+        } catch {
+          return {};
+        }
+      }
+
+      function saveCartSelection(selection) {
+        const safeSelection = sanitizeSelection(selection);
+        localStorage.setItem(getCartStorageKey(), JSON.stringify(safeSelection));
+        localStorage.removeItem('cart_selection');
+        localStorage.setItem('cart_selection_sync_version', String(Date.now()));
+        return safeSelection;
+      }
+
+      function clearCartSelection() {
+        return saveCartSelection({});
+      }
+
+      return {
+        getCartStorageKey,
+        loadCartSelection,
+        saveCartSelection,
+        clearCartSelection,
+      };
+    })();
+
+    window.CUCUTracking = (() => {
+      const PLAN_PREFIX = 'tracking_plan_';
+
+      function planKey(pedidoId) {
+        return `${PLAN_PREFIX}${pedidoId}`;
+      }
+
+      function readTrackingPlan(pedidoId) {
+        try {
+          const raw = localStorage.getItem(planKey(pedidoId)) || '';
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      function writeTrackingPlan(pedidoId, plan) {
+        if (!pedidoId || !plan) return;
+        localStorage.setItem(planKey(pedidoId), JSON.stringify(plan));
+      }
+
+      function clearTrackingPlan(pedidoId) {
+        if (!pedidoId) return;
+        localStorage.removeItem(planKey(pedidoId));
+      }
+
+      function setOrderStatus(pedidoId, status) {
+        if (!pedidoId) return;
+        localStorage.setItem(`pedido_status_${pedidoId}`, String(status || 'active'));
+        if (String(status || '').toLowerCase() === 'delivered') {
+          const current = localStorage.getItem('last_pedido_id');
+          if (current === String(pedidoId)) {
+            localStorage.removeItem('last_pedido_id');
+          }
+        }
+      }
+
+      function isPlanExpired(plan, now = Date.now()) {
+        const endsAt = Number(plan?.endsAt || plan?.completedAt || 0);
+        return Number.isFinite(endsAt) && endsAt > 0 && now >= endsAt;
+      }
+
+      function getPlanRemainingMs(plan, now = Date.now()) {
+        if (!plan) return null;
+        if (String(plan.status || '').toLowerCase() === 'delivered') return 0;
+        const etaStartsAt = Number(plan?.etaStartsAt || plan?.startedAt || 0);
+        if (!Number.isFinite(etaStartsAt) || etaStartsAt <= 0) return null;
+        if (now < etaStartsAt) return null;
+        const endsAt = Number(plan?.endsAt || 0);
+        if (!Number.isFinite(endsAt) || endsAt <= 0) return null;
+        return Math.max(0, endsAt - now);
+      }
+
+      function formatEtaFromMs(remainingMs) {
+        if (remainingMs == null) return '';
+        if (remainingMs <= 0) return 'Llegando';
+
+        const remainingMinutes = Math.ceil(remainingMs / 60000);
+        if (remainingMinutes <= 1) return '1 min';
+        if (remainingMinutes < 60) return `${remainingMinutes} min`;
+
+        const hours = Math.floor(remainingMinutes / 60);
+        const minutes = remainingMinutes % 60;
+        if (!minutes) return `${hours} h`;
+        return `${hours} h ${minutes} min`;
+      }
+
+      function getEtaLabel(pedidoId, now = Date.now()) {
+        const plan = readTrackingPlan(pedidoId);
+        if (String(plan?.status || '').toLowerCase() === 'delivered') {
+          return 'Entregado';
+        }
+        return formatEtaFromMs(getPlanRemainingMs(plan, now));
+      }
+
+      async function markDelivered(pedidoId) {
+        if (!pedidoId) return false;
+
+        const result = await window.CUCUAuth.authenticatedFetch(`/api/pedidos/${encodeURIComponent(String(pedidoId))}/entregar`, {
+          method: 'PATCH',
+        });
+
+        if (!result) return false;
+        const { response, payload } = result;
+        if (!response.ok) return false;
+
+        const plan = readTrackingPlan(pedidoId) || {};
+        plan.status = 'delivered';
+        plan.completedAt = Date.now();
+        writeTrackingPlan(pedidoId, plan);
+        setOrderStatus(pedidoId, 'delivered');
+        return payload || true;
+      }
+
+      async function syncDeliveredOrderIfNeeded(pedidoId) {
+        const plan = readTrackingPlan(pedidoId);
+        if (!plan) return false;
+        if (String(plan.status || '').toLowerCase() === 'delivered') {
+          setOrderStatus(pedidoId, 'delivered');
+          return true;
+        }
+        if (!isPlanExpired(plan)) return false;
+        return markDelivered(pedidoId);
+      }
+
+      async function syncTrackedOrders() {
+        const trackedIds = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (!key || !key.startsWith(PLAN_PREFIX)) continue;
+          const pedidoId = Number(key.slice(PLAN_PREFIX.length));
+          if (!Number.isFinite(pedidoId) || pedidoId <= 0) continue;
+          trackedIds.push(pedidoId);
+        }
+
+        for (const pedidoId of trackedIds) {
+          await syncDeliveredOrderIfNeeded(pedidoId);
+        }
+      }
+
+      return {
+        readTrackingPlan,
+        writeTrackingPlan,
+        clearTrackingPlan,
+        setOrderStatus,
+        isPlanExpired,
+        getPlanRemainingMs,
+        formatEtaFromMs,
+        getEtaLabel,
+        markDelivered,
+        syncDeliveredOrderIfNeeded,
+        syncTrackedOrders,
+      };
+    })();
+
+    (function () {
+      const lastPedidoId = localStorage.getItem('last_pedido_id');
+      const cartSelection = window.CUCUStorage.loadCartSelection();
+      const cartCount = document.getElementById('cartCount');
+      const cartLink = document.getElementById('cartLink');
+
+      const safeSelection = {};
+      Object.entries(cartSelection || {}).forEach(([key, value]) => {
+        const id = Number(key);
+        const qty = Math.floor(Number(value || 0));
+        if (!Number.isFinite(id) || id <= 0) return;
+        if (!Number.isFinite(qty) || qty <= 0) return;
+        safeSelection[String(id)] = qty;
+      });
+      const count = Object.keys(safeSelection).length;
+      if (cartCount) {
+        cartCount.textContent = count > 0 ? String(count) : '';
+        cartCount.hidden = count === 0;
+      }
+      if (cartLink) cartLink.href = '/ui/carrito/';
+
+      const path = window.location.pathname;
+      const navMap = {
+        '/': 'inicio',
+        '/ui/pedido/': 'compra',
+        '/ui/publicar/': 'vende',
+      };
+      const activeNav = navMap[path];
+      document.querySelectorAll('.nav-link[data-nav]').forEach((link) => {
+        link.classList.toggle('active', link.dataset.nav === activeNav);
+      });
+    })();
+  </script>
+  {% block page_scripts %}{% endblock %}
+</body>
+</html>

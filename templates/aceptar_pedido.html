@@ -1,154 +1,35 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aceptar Pedido</title>
-  <meta name="color-scheme" content="light" />
-  <!-- Estilo implementado temporalmente en el html para mostrar funcionalidad -->
-  <style>
-    :root {
-      --bg: Canvas;
-      --fg: CanvasText;
-      --muted: color-mix(in srgb, CanvasText 55%, Canvas);
-      --border: color-mix(in srgb, CanvasText 12%, Canvas);
-      --card: color-mix(in srgb, CanvasText 4%, Canvas);
-      --shadow: 0 10px 30px color-mix(in srgb, CanvasText 12%, transparent);
-      --radius: 14px;
-      --gap: 12px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: color-mix(in srgb, LinkText 12%, Canvas);
-      color: var(--fg);
-      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    a { color: LinkText; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px; }
-    .top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--gap);
-      margin-bottom: 14px;
-    }
-    h1 { margin: 0; letter-spacing: -0.02em; }
-    .hint { margin: 6px 0 0; color: var(--muted); }
-    .card {
-      border: 1px solid var(--border);
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-    form { display: grid; gap: var(--gap); margin-top: 10px; }
-    label { display: grid; gap: 6px; font-weight: 600; }
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      color: var(--fg);
-      outline: none;
-    }
-    input:focus { border-color: color-mix(in srgb, LinkText 45%, var(--border)); }
-    button {
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 6%, Canvas);
-      color: var(--fg);
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button:hover { filter: brightness(1.03); }
-    .out {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      overflow: auto;
-      white-space: pre-wrap;
-    }
-    .ok { border-color: color-mix(in srgb, Green 35%, var(--border)); }
-    .err { border-color: color-mix(in srgb, Red 35%, var(--border)); }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 6%, Canvas);
-      color: var(--fg);
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .btn:hover { text-decoration: none; filter: brightness(1.03); }
-    .note {
-      margin-top: 10px;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1px dashed var(--border);
-      color: var(--muted);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .summary {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 2%, Canvas);
-      display: grid;
-      gap: 8px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, CanvasText 4%, Canvas);
-    }
-    .badge.pendiente { border-color: color-mix(in srgb, Orange 40%, var(--border)); color: color-mix(in srgb, Orange 70%, var(--fg)); }
-    .badge.aceptado  { border-color: color-mix(in srgb, Green 40%, var(--border));  color: color-mix(in srgb, Green 60%, var(--fg)); }
-  </style>
-</head>
-<body>
-  <main class="wrap">
-    <div class="top">
-      <div>
-        <h1>Aceptar Pedido</h1>
-        <p class="hint">Como vendedor, acepta un pedido pendiente.</p>
-      </div>
-      <a class="btn" href="/">Inicio</a>
-    </div>
+{% extends "base_app.html" %}
 
-    <section class="card">
+{% block title %}Aceptar pedido | CUCU{% endblock %}
+{% block eyebrow %}Vender{% endblock %}
+{% block page_title %}Acepta un <span>pedido</span>{% endblock %}
+{% block page_lead %}Esta pantalla representa el lado del vendedor dentro de CUCU y mantiene el mismo lenguaje visual del resto del producto.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-primary" href="/ui/notificaciones/">Ver notificaciones</a>
+  <a class="btn btn-secondary" href="/">Inicio</a>
+{% endblock %}
+{% block hero_points %}
+  <div class="hero-point"><span class="hero-point-badge">P</span><div><strong>Pedido pendiente</strong><p>Busca un pedido por ID y valida si corresponde a tu publicación.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">A</span><div><strong>Aceptación</strong><p>Solo el dueño de la publicación puede confirmar el pedido.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">N</span><div><strong>Notificación</strong><p>El comprador recibe una notificación automática al aceptar.</p></div></div>
+{% endblock %}
+{% block section_title %}Aceptar pedido{% endblock %}
+{% block section_hint %}Desde aquí el vendedor confirma pedidos y continúa el flujo operativo sin salir del estilo visual de CUCU.{% endblock %}
+{% block content %}
       <form id="form">
         <label>
           Pedido ID
           <input name="pedido_id" type="number" required inputmode="numeric" placeholder="Ej: 5" />
         </label>
-        <button type="submit">Buscar pedido</button>
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Buscar pedido</button>
+        </div>
       </form>
 
       <!-- Confirmación antes de aceptar  -->
       <div id="confirm" class="summary" hidden>
         <div>¿Aceptar el pedido <strong id="confirmId"></strong>?</div>
-        <button type="button" id="aceptarBtn"> Aceptar pedido</button>
+        <button class="btn btn-primary" type="button" id="aceptarBtn">Aceptar pedido</button>
       </div>
 
       <!-- Resumen del pedido luego de aceptar -->
@@ -164,15 +45,15 @@
       </div>
 
       <div class="actions" id="actions" hidden>
-        <a class="btn" href="/">Volver al inicio</a>
-        <a class="btn" href="/ui/notificaciones/">Ver notificaciones</a>
+        <a class="btn btn-secondary" href="/">Volver al inicio</a>
+        <a class="btn btn-secondary" href="/ui/notificaciones/">Ver notificaciones</a>
       </div>
 
       <pre id="out" class="out" aria-live="polite"></pre>
-    </section>
-  </main>
-
+{% endblock %}
+{% block page_scripts %}
   <script>
+    const auth = window.CUCUAuth;
     const out = document.getElementById('out');
     const actions = document.getElementById('actions');
     const confirm = document.getElementById('confirm');
@@ -181,12 +62,7 @@
     const pedidoTel = document.getElementById('pedidoTel');
     const pedidoTotal = document.getElementById('pedidoTotal');
 
-    // Si no hay sesión, redirigir a login
-    const token = localStorage.getItem('token');
-    if (!token) {
-      const next = encodeURIComponent(window.location.pathname);
-      window.location.href = `/ui/login/?next=${next}`;
-    }
+    auth.ensureAuthenticatedSession();
 
     // Prefill desde querystring
     const params = new URLSearchParams(window.location.search);
@@ -217,24 +93,16 @@
       out.classList.remove('ok', 'err');
       out.textContent = 'Procesando...';
 
-      const t = localStorage.getItem('token');
-      if (!t) {
-        out.classList.add('err');
-        out.textContent = 'No hay sesión. Redirigiendo...';
-        setTimeout(() => { window.location.href = '/ui/login/'; }, 400);
-        return;
-      }
-
       const pedidoId = pedidoInput.value;
-      const res = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}/aceptar/`, {
+      const result = await auth.authenticatedFetch(`/api/pedidos/${encodeURIComponent(pedidoId)}/aceptar/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${t}`,
         },
       });
 
-      const json = await res.json().catch(() => ({}));
+      if (!result) return;
+      const { response: res, payload: json } = result;
       out.classList.add(res.ok ? 'ok' : 'err');
       out.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
 
@@ -248,5 +116,4 @@
       }
     });
   </script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,16 @@
+from __future__ import annotations
+
+from typing import Any, Protocol, runtime_checkable
+
+
+@runtime_checkable
+class UserRepository(Protocol):
+    def exists_by_email(self, email: str) -> bool: ...
+
+    def get_by_email(self, email: str) -> Any | None: ...
+
+    def get_by_id(self, user_id: int) -> Any | None: ...
+
+    def create_user(self, *, nombre: str, email: str, password: str) -> Any: ...
+
+    def update_password(self, *, user: Any, password: str) -> Any: ...

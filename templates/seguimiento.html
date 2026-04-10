@@ -1,0 +1,1235 @@
+{% extends "base_app.html" %}
+
+{% block title %}Seguimiento | CUCU{% endblock %}
+{% block eyebrow %}Pedido{% endblock %}
+{% block page_title %}Seguimiento en <span>tiempo real</span>{% endblock %}
+{% block page_lead %}Confirma tu pedido y mira el recorrido del repartidor.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-secondary" href="/ui/pedido/">Seguir comprando</a>
+  <a class="btn btn-secondary" href="/ui/carrito/">Carrito</a>
+{% endblock %}
+{% block hero_points %}{% endblock %}
+
+{% block head_extra %}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    .page-grid { grid-template-columns: minmax(0, 1fr); }
+    .hero-panel { display: none; }
+    .section-title, .section-hint { display: none; }
+    .surface { padding-top: 0; }
+
+    .track-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      padding: 0 22px 22px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      border-radius: 22px;
+      box-shadow: 0 18px 54px rgba(31, 36, 48, 0.06);
+      padding: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    #map {
+      width: 100%;
+      height: 520px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 36, 48, 0.10);
+      overflow: hidden;
+      background: rgba(31, 36, 48, 0.04);
+    }
+
+    .kv {
+      display: grid;
+      gap: 10px;
+      padding: 10px 0 14px;
+      border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+    }
+
+    .kv-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 800;
+      color: #4e515a;
+    }
+
+    .kv-line strong { color: var(--ink); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 36, 48, 0.10);
+      background: rgba(31, 36, 48, 0.02);
+      font-weight: 900;
+      color: var(--ink);
+      margin: 10px 0 0;
+    }
+
+    .timeline {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-step {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .timeline-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 36, 48, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: transparent;
+      margin-top: 1px;
+    }
+
+    .timeline-step.done {
+      color: var(--ink);
+    }
+
+    .timeline-step.done .timeline-mark {
+      border-color: rgba(30, 174, 122, 0.35);
+      background: rgba(30, 174, 122, 0.12);
+      color: var(--green);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 4px;
+      background: rgba(30, 174, 122, 0.55);
+    }
+
+    .mini-label {
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .mini-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      outline: none;
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .items {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .items li { margin: 6px 0; }
+
+    @media (max-width: 980px) {
+      .track-layout { grid-template-columns: 1fr; }
+      #map { height: 460px; }
+    }
+
+    .courier-marker {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      border: 2px solid rgba(255, 255, 255, 0.92);
+      box-shadow: 0 16px 38px rgba(31, 36, 48, 0.18);
+      background: var(--accent);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .courier-marker::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      transform: rotate(45deg);
+      bottom: -4px;
+      left: 50%;
+      margin-left: -5px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.92);
+      border-right: 2px solid rgba(255, 255, 255, 0.92);
+      border-radius: 2px;
+    }
+
+    .map-pin {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      border: 2px solid rgba(255, 255, 255, 0.94);
+      box-shadow: 0 14px 30px rgba(31, 36, 48, 0.18);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 900;
+      position: relative;
+    }
+
+    .map-pin svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      fill: currentColor;
+    }
+
+    .map-pin::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      transform: rotate(45deg);
+      bottom: -4px;
+      left: 50%;
+      margin-left: -5px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.94);
+      border-right: 2px solid rgba(255, 255, 255, 0.94);
+      border-radius: 2px;
+    }
+
+    .map-pin.pickup {
+      background: #ff8a1f;
+    }
+
+    .map-pin.pickup::after {
+      background: #ff8a1f;
+    }
+
+    .map-pin.delivery {
+      background: #1f9d73;
+    }
+
+    .map-pin.delivery::after {
+      background: #1f9d73;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="track-layout">
+    <section class="card" aria-label="Mapa de seguimiento">
+      <h3>Mapa</h3>
+      <div id="map" aria-label="Mapa de seguimiento"></div>
+      <p class="hint" id="geoHint"></p>
+    </section>
+
+    <aside class="card" aria-label="Detalle del pedido">
+      <h3>Confirmación</h3>
+
+      <div class="kv">
+        <div class="kv-line"><span>Pedido</span><strong id="pedidoIdValue">-</strong></div>
+        <div class="kv-line"><span>Repartidor</span><strong id="courierValue">-</strong></div>
+        <div class="kv-line"><span>Distancia</span><strong id="distanceValue">-</strong></div>
+        <div class="kv-line"><span>ETA</span><strong id="etaValue">-</strong></div>
+        <div class="kv-line"><span>Método</span><strong id="methodValue">-</strong></div>
+      </div>
+
+      <div class="kv" style="border-bottom: 0; padding-bottom: 0;">
+        <div class="kv-line"><span>Pagaste</span><strong id="paidValue">-</strong></div>
+        <div class="kv-line"><span>Total pedido</span><strong id="orderTotalValue">-</strong></div>
+        <div class="kv-line"><span>Propina</span><strong id="tipValue">-</strong></div>
+        <div class="kv-line"><span>Total con propina</span><strong id="grandTotalValue">-</strong></div>
+      </div>
+
+      <div class="status-pill"><span class="dot" aria-hidden="true"></span><span id="statusValue">En camino</span></div>
+
+      <ol class="timeline" id="timeline" aria-label="Estado del pedido">
+        <li class="timeline-step" data-step="assigned"><span class="timeline-mark" aria-hidden="true">✓</span><div>Repartidor asignado</div></li>
+        <li class="timeline-step" data-step="arrived_pickup"><span class="timeline-mark" aria-hidden="true">✓</span><div>Repartidor ha llegado por tu pedido</div></li>
+        <li class="timeline-step" data-step="left_pickup"><span class="timeline-mark" aria-hidden="true">✓</span><div>Repartidor ha salido con tu pedido</div></li>
+        <li class="timeline-step" data-step="arrived_destination"><span class="timeline-mark" aria-hidden="true">✓</span><div>Tu pedido ha llegado a tu ubicación</div></li>
+      </ol>
+
+      <div style="margin-top: 14px;">
+        <label class="mini-label">
+          Propina (opcional)
+          <input id="tipInput" class="mini-input" inputmode="numeric" placeholder="Ej: 2000" />
+        </label>
+        <div class="actions" style="margin-top: 12px;">
+          <button class="btn btn-primary" id="applyTipBtn" type="button">Aplicar propina</button>
+        </div>
+        <p class="hint">La propina se muestra en el resumen (no se procesa como pago real todavía).</p>
+      </div>
+
+      <ul id="itemsList" class="items"></ul>
+
+      <pre id="out" class="out" aria-live="polite" style="margin-top: 14px;"></pre>
+    </aside>
+  </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script>
+  const auth = window.CUCUAuth;
+  const tracking = window.CUCUTracking;
+
+  const pedidoIdValue = document.getElementById('pedidoIdValue');
+  const courierValue = document.getElementById('courierValue');
+  const distanceValue = document.getElementById('distanceValue');
+  const etaValue = document.getElementById('etaValue');
+  const methodValue = document.getElementById('methodValue');
+  const paidValue = document.getElementById('paidValue');
+  const orderTotalValue = document.getElementById('orderTotalValue');
+  const tipValue = document.getElementById('tipValue');
+  const grandTotalValue = document.getElementById('grandTotalValue');
+  const statusValue = document.getElementById('statusValue');
+  const timeline = document.getElementById('timeline');
+  const itemsList = document.getElementById('itemsList');
+  const out = document.getElementById('out');
+  const geoHint = document.getElementById('geoHint');
+
+  const tipInput = document.getElementById('tipInput');
+  const applyTipBtn = document.getElementById('applyTipBtn');
+
+  function formatMoneyCOP(value) {
+    return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  }
+
+  function getQueryParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function safeNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function haversineKm(a, b) {
+    if (!a || !b) return null;
+    const toRad = (x) => (x * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * (Math.sin(dLon / 2) ** 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  function haversineM(a, b) {
+    const km = haversineKm(a, b);
+    if (km == null) return 0;
+    return km * 1000;
+  }
+
+  function interp(a, b, t) {
+    return {
+      lat: a.lat + (b.lat - a.lat) * t,
+      lng: a.lng + (b.lng - a.lng) * t,
+    };
+  }
+
+  function buildCoordsParam(points) {
+    return (points || [])
+      .map((p) => `${Number(p.lng).toFixed(6)},${Number(p.lat).toFixed(6)}`)
+      .join(';');
+  }
+
+  async function fetchRoadRoute(points) {
+    if (!Array.isArray(points) || points.length < 2) return null;
+    const coords = buildCoordsParam(points);
+    if (!coords) return null;
+
+    const r = await auth.authenticatedFetch(`/api/route?coords=${encodeURIComponent(coords)}`);
+    if (!r) return null;
+    const { response, payload } = r;
+    if (!response.ok) return null;
+
+    const coordsList = Array.isArray(payload?.geometry) ? payload.geometry : [];
+    if (!coordsList.length) return null;
+    const path = coordsList
+      .map((pair) => ({ lng: Number(pair?.[0]), lat: Number(pair?.[1]) }))
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+    if (path.length < 2) return null;
+
+    const legs = Array.isArray(payload?.legs) ? payload.legs : [];
+    const legSeconds = legs.map((l) => Math.max(10, Number(l?.duration || 0)));
+    const legMeters = legs.map((l) => Math.max(1, Number(l?.distance || 0)));
+
+    return { path, legSeconds, legMeters };
+  }
+
+  async function fetchRoadRouteWithRetry(points, attempts = 3) {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      const route = await fetchRoadRoute(points);
+      if (route?.path?.length && route?.legSeconds?.length) {
+        return route;
+      }
+    }
+    return null;
+  }
+
+  function buildCumulativeDistances(path) {
+    const cum = [0];
+    for (let i = 0; i < path.length - 1; i += 1) {
+      cum.push(cum[cum.length - 1] + haversineM(path[i], path[i + 1]));
+    }
+    return cum;
+  }
+
+  function pointAtDistance(path, cum, meters) {
+    if (!path.length) return null;
+    if (meters <= 0) return { ...path[0] };
+    const total = cum[cum.length - 1] || 0;
+    if (meters >= total) return { ...path[path.length - 1] };
+
+    // búsqueda lineal (paths son relativamente cortos)
+    let idx = 0;
+    while (idx < cum.length - 1 && cum[idx + 1] < meters) idx += 1;
+    const a = path[idx];
+    const b = path[idx + 1] || a;
+    const segStart = cum[idx];
+    const segEnd = cum[idx + 1] || segStart;
+    const t = segEnd > segStart ? (meters - segStart) / (segEnd - segStart) : 1;
+    return interp(a, b, Math.max(0, Math.min(1, t)));
+  }
+
+  function setStepDone(step, done) {
+    const el = timeline?.querySelector?.(`[data-step="${step}"]`);
+    if (!el) return;
+    el.classList.toggle('done', Boolean(done));
+  }
+
+  function setTimeline(stage) {
+    setStepDone('assigned', true);
+    // Los otros pasos se marcan desde tickCourier con más precisión.
+  }
+
+  function pickCourierName(seed) {
+    const names = ['Diana', 'Santiago', 'Camilo', 'Mateo', 'Valentina', 'Mariana', 'Andrés', 'Juan', 'Laura', 'Sara'];
+    const last = ['Pérez', 'Gómez', 'Rodríguez', 'López', 'Martínez', 'García', 'Sánchez', 'Ramírez', 'Torres', 'Ruiz'];
+    const idx = Math.abs(Number(seed || 0)) % names.length;
+    const jdx = Math.abs(Number(seed || 0) * 7) % last.length;
+    return `${names[idx]} ${last[jdx]}`;
+  }
+
+  function loadLastCheckout() {
+    try {
+      const raw = localStorage.getItem('last_checkout') || '';
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  function setActiveOrderStatus(pedidoId, status) {
+    if (!pedidoId) return;
+    tracking?.setOrderStatus?.(pedidoId, status);
+  }
+
+  function loadTip(pedidoId) {
+    try {
+      const raw = localStorage.getItem(`tip_${pedidoId}`);
+      if (!raw) return 0;
+      const n = Number(raw);
+      return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function loadTipLock(pedidoId) {
+    try {
+      return localStorage.getItem(`tip_lock_${pedidoId}`) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function setTipLock(pedidoId, locked) {
+    localStorage.setItem(`tip_lock_${pedidoId}`, locked ? '1' : '0');
+  }
+
+  function saveTip(pedidoId, value) {
+    localStorage.setItem(`tip_${pedidoId}`, String(Math.max(0, Math.floor(Number(value || 0)))));
+  }
+
+  function parseTipFromInput() {
+    const digits = String(tipInput.value || '').replace(/\D+/g, '');
+    const n = Number(digits || 0);
+    return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+  }
+
+  function normalizeAddressQuery(address) {
+    let a = String(address || '').trim();
+    if (!a) return '';
+
+    // Normalizaciones simples para mejorar la geocodificación cuando el usuario escribe abreviado.
+    a = a.replace(/\s+/g, ' ');
+    a = a.replace(/^cl\s*/i, 'Calle ');
+    a = a.replace(/^cal\s*/i, 'Calle ');
+    a = a.replace(/^cra\s*/i, 'Carrera ');
+    a = a.replace(/^kr\s*/i, 'Carrera ');
+    a = a.replace(/^av\s*/i, 'Avenida ');
+
+    // Caso típico: "Calle 5 80c125" -> "Calle 5 #80C-125"
+    const m = a.match(/^(Calle|Carrera)\s*(\d+[A-Za-z]?)\s+(\d+)([A-Za-z])\s*(\d+)$/i);
+    if (m) {
+      const via = m[1];
+      const num1 = m[2];
+      const num2 = String(m[3] || '') + String(m[4] || '').toUpperCase();
+      const num3 = m[5];
+      a = `${via} ${num1} #${num2}-${num3}`;
+    }
+
+    // Global: no forzamos ciudad/país acá. El backend decide contexto si hace falta.
+    return a;
+  }
+
+  async function geocodeAddressToLatLng(address) {
+    const query = normalizeAddressQuery(address);
+    if (!query) return null;
+
+    try {
+      const r = await auth.authenticatedFetch(`/api/geocode?direccion_texto=${encodeURIComponent(query)}`);
+      if (!r) return null;
+      const { response, payload } = r;
+      if (!response.ok) return null;
+      const lat = safeNumber(payload?.latitud);
+      const lng = safeNumber(payload?.longitud);
+      if (lat == null || lng == null) return null;
+      return { lat, lng };
+    } catch {
+      return null;
+    }
+  }
+
+  const DEFAULT_MAP_CENTER = { lat: 4.570868, lng: -74.297333 };
+  const TRACKING_SPEED_MULTIPLIER = 100;
+  const ASSIGN_DELAY_SECONDS = 5;
+  const PICKUP_WAIT_SECONDS = 5;
+  const MIN_PICKUP_TRAVEL_SECONDS = 8;
+  const MIN_DELIVERY_TRAVEL_SECONDS = 28;
+
+  const map = L.map('map', { zoomControl: false, attributionControl: true });
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  map.setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
+
+  const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 20,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+
+  let pickups = [];
+  let destination = null;
+  let courierStart = null;
+  let roadPath = [];
+  let roadCum = null;
+  let roadLegSeconds = [];
+  let roadLegMeters = [];
+  let routeDistanceMeters = 0;
+  let routeDurationSeconds = 0;
+  let simStartMs = null;
+  let currentPedidoId = null;
+  let deliverySyncStarted = false;
+  let assignmentAtMs = 0;
+  let pickupArrivalAtMs = 0;
+  let pickupDepartureAtMs = 0;
+  let routeEndsAtMs = 0;
+  let travelLegSeconds = [];
+
+  const pickupMarkers = [];
+  const pickupIcon = L.divIcon({
+    className: '',
+    html: '<div class="map-pin pickup" title="Punto de recogida"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2a1 1 0 0 1 1 1v6a2 2 0 0 0 4 0V3a1 1 0 1 1 2 0v6a4 4 0 0 1-3 3.874V22a1 1 0 1 1-2 0v-9.126A4 4 0 0 1 6 9V3a1 1 0 0 1 1-1Zm9 0a1 1 0 0 1 1 1v8.586l1.293 1.293a1 1 0 0 1-1.414 1.414L16 13.414V22a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Z"/></svg></div>',
+    iconSize: [34, 34],
+    iconAnchor: [17, 30],
+  });
+
+  const deliveryIcon = L.divIcon({
+    className: '',
+    html: '<div class="map-pin delivery" title="Punto de entrega"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 3 10.4V21a1 1 0 0 0 1 1h5.5a1 1 0 0 0 1-1v-5h3v5a1 1 0 0 0 1 1H20a1 1 0 0 0 1-1V10.4l-9-7.2Zm0 2.56 7 5.6V20h-3.5v-5a1 1 0 0 0-1-1h-5a1 1 0 0 0-1 1v5H5v-8.64l7-5.6Z"/></svg></div>',
+    iconSize: [34, 34],
+    iconAnchor: [17, 30],
+  });
+
+  const destMarker = L.marker(DEFAULT_MAP_CENTER, { title: 'Tu ubicación', icon: deliveryIcon }).addTo(map);
+  destMarker.setOpacity(0);
+
+  const routeColor = getComputedStyle(document.documentElement).getPropertyValue('--accent')?.trim() || '#ff6a1a';
+
+  const courierIcon = L.divIcon({
+    className: '',
+    html: '<div class="courier-marker" title="Repartidor">🛵</div>',
+    iconSize: [34, 34],
+    iconAnchor: [17, 30],
+  });
+
+  const courierMarker = L.marker(DEFAULT_MAP_CENTER, { icon: courierIcon, title: 'Repartidor' }).addTo(map);
+  courierMarker.setOpacity(0);
+  const routeLine = L.polyline([], { color: routeColor, weight: 4, opacity: 0.9 }).addTo(map);
+
+  function setMarkerVisible(marker, visible) {
+    if (!marker?.setOpacity) return;
+    marker.setOpacity(visible ? 1 : 0);
+  }
+
+  function clearTimeline() {
+    ['assigned', 'arrived_pickup', 'left_pickup', 'arrived_destination'].forEach((step) => setStepDone(step, false));
+  }
+
+  function fit() {
+    const points = [];
+    if (courierStart) points.push(courierStart);
+    pickups.forEach((p) => points.push(p));
+    if (destination) points.push(destination);
+    if (!points.length) {
+      map.setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
+      return;
+    }
+    const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
+    map.fitBounds(bounds.pad(0.25));
+  }
+
+  function setDistanceText(km) {
+    if (km == null) {
+      distanceValue.textContent = '—';
+      return;
+    }
+    distanceValue.textContent = `${km.toFixed(1)} km`;
+  }
+
+  function updateTotalsUI(orderTotal, tip) {
+    orderTotalValue.textContent = formatMoneyCOP(orderTotal);
+    tipValue.textContent = formatMoneyCOP(tip);
+    grandTotalValue.textContent = formatMoneyCOP(Number(orderTotal || 0) + Number(tip || 0));
+  }
+
+  let currentOrderTotal = 0;
+  let currentMetodo = '';
+
+  async function getDestinationFromGeolocation() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        geoHint.textContent = 'Tu navegador no soporta geolocalización.';
+        resolve(null);
+        return;
+      }
+
+      geoHint.textContent = 'Obteniendo tu ubicación...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          geoHint.textContent = '';
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {
+          geoHint.textContent = 'No se pudo obtener tu ubicación. Activa permisos de ubicación para ver la distancia.';
+          resolve(null);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 8000 }
+      );
+    });
+  }
+
+  async function getDestinationFromCheckoutAddress(lastCheckout, pedidoId) {
+    const sameOrder = lastCheckout && (lastCheckout?.pedidoId === pedidoId || String(lastCheckout?.pedidoId) === String(pedidoId));
+    if (!sameOrder) return null;
+
+    const base = String(lastCheckout?.direccion_base || lastCheckout?.direccion || '').trim();
+    const details = String(lastCheckout?.direccion_detalles || '').trim();
+    if (!base) return null;
+
+    const storedLat = safeNumber(lastCheckout?.direccion_lat);
+    const storedLng = safeNumber(lastCheckout?.direccion_lng);
+    if (storedLat != null && storedLng != null) {
+      return { lat: storedLat, lng: storedLng };
+    }
+
+    const display = details ? `${base} (${details})` : base;
+
+    geoHint.textContent = `Ubicando tu dirección de entrega: ${display}`;
+    const dest = await geocodeAddressToLatLng(base);
+    if (dest) {
+      geoHint.textContent = '';
+      return dest;
+    }
+    geoHint.textContent = 'No se pudo ubicar tu dirección. Usando tu ubicación actual como respaldo.';
+    return null;
+  }
+
+  async function getDestinationFromPedido(pedido) {
+    const storedLat = safeNumber(pedido?.direccion_entrega_latitud);
+    const storedLng = safeNumber(pedido?.direccion_entrega_longitud);
+    if (storedLat != null && storedLng != null) {
+      return { lat: storedLat, lng: storedLng };
+    }
+
+    const base = String(pedido?.direccion_entrega || '').trim();
+    if (!base) return null;
+
+    geoHint.textContent = `Ubicando la dirección del pedido: ${base}`;
+    const dest = await geocodeAddressToLatLng(base);
+    if (dest) {
+      geoHint.textContent = '';
+      return dest;
+    }
+
+    return null;
+  }
+
+  function samePoint(a, b) {
+    if (!a || !b) return false;
+    return Math.abs(a.lat - b.lat) < 1e-8 && Math.abs(a.lng - b.lng) < 1e-8;
+  }
+
+  function uniquePickups(raw) {
+    const out = [];
+    (raw || []).forEach((p) => {
+      if (!p) return;
+      const exists = out.some((q) => samePoint(p, q));
+      if (!exists) out.push(p);
+    });
+    return out;
+  }
+
+  function isValidPoint(point) {
+    return Number.isFinite(Number(point?.lat)) && Number.isFinite(Number(point?.lng));
+  }
+
+  function buildCourierStartPoint(pickupPoint) {
+    if (!pickupPoint) return null;
+    return {
+      lat: pickupPoint.lat + 0.0022,
+      lng: pickupPoint.lng - 0.0022,
+    };
+  }
+
+  function sumSeconds(values, endExclusive) {
+    return (values || []).slice(0, endExclusive).reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
+  function buildTravelLegSeconds(legSecondsList) {
+    return (legSecondsList || []).map((seconds, index, source) => {
+      const scaled = Number(seconds || 0) / Math.max(1, TRACKING_SPEED_MULTIPLIER);
+      const isDeliveryLeg = index === source.length - 1;
+      return Math.max(isDeliveryLeg ? MIN_DELIVERY_TRAVEL_SECONDS : MIN_PICKUP_TRAVEL_SECONDS, scaled);
+    });
+  }
+
+  function getStage(now = Date.now()) {
+    if (!assignmentAtMs || now < assignmentAtMs) return 'assigning';
+    if (!pickupArrivalAtMs || now < pickupArrivalAtMs) return 'to_pickup';
+    if (!pickupDepartureAtMs || now < pickupDepartureAtMs) return 'at_pickup';
+    if (!routeEndsAtMs || now < routeEndsAtMs) return 'to_destination';
+    return 'arrived';
+  }
+
+  function getMetersAtTime(now = Date.now()) {
+    if (!roadPath.length || !roadCum || !travelLegSeconds.length) return 0;
+    if (now < assignmentAtMs) return 0;
+
+    const pickupLegCount = Math.max(0, travelLegSeconds.length - 1);
+    const beforeDeliveryMeters = roadLegMeters.slice(0, pickupLegCount).reduce((sum, value) => sum + Number(value || 0), 0);
+    const deliveryLegMeters = Number(roadLegMeters[roadLegMeters.length - 1] || 0);
+
+    if (now < pickupArrivalAtMs) {
+      const elapsedPickupSeconds = (now - assignmentAtMs) / 1000;
+      let remaining = Math.max(0, elapsedPickupSeconds);
+      let meters = 0;
+      for (let index = 0; index < pickupLegCount; index += 1) {
+        const legSeconds = Number(travelLegSeconds[index] || 0);
+        const legMeters = Number(roadLegMeters[index] || 0);
+        if (remaining <= legSeconds) {
+          const fraction = legSeconds > 0 ? remaining / legSeconds : 1;
+          return meters + (legMeters * Math.max(0, Math.min(1, fraction)));
+        }
+        remaining -= legSeconds;
+        meters += legMeters;
+      }
+      return beforeDeliveryMeters;
+    }
+
+    if (now < pickupDepartureAtMs) {
+      return beforeDeliveryMeters;
+    }
+
+    if (now < routeEndsAtMs) {
+      const elapsedDeliverySeconds = (now - pickupDepartureAtMs) / 1000;
+      const deliverySeconds = Number(travelLegSeconds[travelLegSeconds.length - 1] || 0);
+      const fraction = deliverySeconds > 0 ? elapsedDeliverySeconds / deliverySeconds : 1;
+      return beforeDeliveryMeters + (deliveryLegMeters * Math.max(0, Math.min(1, fraction)));
+    }
+
+    return routeDistanceMeters;
+  }
+
+  function updateStatusAndTimeline(now = Date.now()) {
+    const stage = getStage(now);
+    clearTimeline();
+
+    if (stage === 'assigning') {
+      statusValue.textContent = 'Asignando repartidor';
+      etaValue.textContent = '—';
+      setMarkerVisible(courierMarker, false);
+      return stage;
+    }
+
+    setMarkerVisible(courierMarker, true);
+    setStepDone('assigned', true);
+
+    if (stage === 'to_pickup') {
+      statusValue.textContent = 'Repartidor yendo por tu pedido';
+      return stage;
+    }
+
+    setStepDone('arrived_pickup', true);
+    if (stage === 'at_pickup') {
+      statusValue.textContent = 'Repartidor ha llegado por tu pedido';
+      return stage;
+    }
+
+    setStepDone('left_pickup', true);
+    if (stage === 'to_destination') {
+      statusValue.textContent = 'Repartidor en camino a tu ubicación';
+      return stage;
+    }
+
+    setStepDone('arrived_destination', true);
+    statusValue.textContent = 'Tu pedido ha llegado a tu ubicación';
+    return stage;
+  }
+
+  function resetPickupMarkers() {
+    pickupMarkers.forEach((m) => map.removeLayer(m));
+    pickupMarkers.length = 0;
+  }
+
+  function renderTrackingMap() {
+    resetPickupMarkers();
+    pickups.forEach((p, idx) => {
+      const title = pickups.length === 1 ? 'Recogida' : `Recogida ${idx + 1}`;
+      const marker = L.marker(p, { title, icon: pickupIcon }).addTo(map);
+      pickupMarkers.push(marker);
+    });
+
+    if (destination) {
+      destMarker.setLatLng(destination);
+      setMarkerVisible(destMarker, true);
+    } else {
+      setMarkerVisible(destMarker, false);
+    }
+
+    if (courierStart) {
+      courierMarker.setLatLng(courierStart);
+    } else {
+      setMarkerVisible(courierMarker, false);
+    }
+
+    routeLine.setLatLngs(Array.isArray(roadPath) ? roadPath : []);
+    fit();
+    try { map.invalidateSize(); } catch {}
+  }
+
+  function restoreTrackingFromPlan(plan) {
+    if (!plan) return false;
+
+    const restoredDestination = plan?.destination;
+    const restoredCourierStart = plan?.courierStart;
+    const restoredPickups = Array.isArray(plan?.pickups) ? plan.pickups.filter(isValidPoint) : pickups;
+    const restoredRoadPath = Array.isArray(plan?.roadPath) ? plan.roadPath.filter(isValidPoint) : [];
+    const startedAt = Number(plan?.startedAt || 0);
+    const endsAt = Number(plan?.endsAt || 0);
+    const etaStartsAt = Number(plan?.etaStartsAt || startedAt || 0);
+    const restoredPickupArrivalAt = Number(plan?.pickupArrivalAt || 0);
+    const restoredPickupDepartureAt = Number(plan?.pickupDepartureAt || 0);
+    const restoredTravelLegSeconds = Array.isArray(plan?.travelLegSeconds) ? plan.travelLegSeconds.map((value) => Number(value || 0)) : [];
+
+    if (!isValidPoint(restoredDestination) || !isValidPoint(restoredCourierStart) || restoredRoadPath.length < 2 || !etaStartsAt || !endsAt || restoredTravelLegSeconds.length < 2) {
+      return false;
+    }
+
+    destination = restoredDestination;
+    courierStart = restoredCourierStart;
+    pickups = restoredPickups;
+    roadPath = restoredRoadPath;
+    roadCum = buildCumulativeDistances(roadPath);
+    roadLegSeconds = Array.isArray(plan?.roadLegSeconds) ? plan.roadLegSeconds.map((value) => Number(value || 0)) : [];
+    roadLegMeters = Array.isArray(plan?.roadLegMeters) ? plan.roadLegMeters.map((value) => Number(value || 0)) : [];
+    travelLegSeconds = restoredTravelLegSeconds;
+    routeDistanceMeters = Number(roadCum[roadCum.length - 1] || 0);
+    routeDurationSeconds = Math.max(1, (endsAt - startedAt) / 1000);
+    simStartMs = startedAt;
+    assignmentAtMs = etaStartsAt;
+    pickupArrivalAtMs = restoredPickupArrivalAt;
+    pickupDepartureAtMs = restoredPickupDepartureAt;
+    routeEndsAtMs = endsAt;
+
+    renderTrackingMap();
+    return true;
+  }
+
+  function writeTrackingPlan(startedAt) {
+    if (!currentPedidoId || !tracking?.writeTrackingPlan || !roadPath.length) return;
+
+    tracking.writeTrackingPlan(currentPedidoId, {
+      startedAt,
+      etaStartsAt: assignmentAtMs,
+      pickupArrivalAt: pickupArrivalAtMs,
+      pickupDepartureAt: pickupDepartureAtMs,
+      endsAt: routeEndsAtMs,
+      totalSimulationSeconds: routeDurationSeconds,
+      destination,
+      courierStart,
+      pickups,
+      roadPath,
+      roadLegSeconds,
+      roadLegMeters,
+      travelLegSeconds,
+      status: 'active',
+      source: 'live-staged',
+    });
+  }
+
+  async function setupTrackingRoute(startedAtMs) {
+    if (!destination || !pickups.length) {
+      out.classList.add('err');
+      out.textContent = 'Faltan puntos de recogida o entrega para construir el mapa del pedido.';
+      return false;
+    }
+
+    const firstPickup = pickups[0];
+    courierStart = buildCourierStartPoint(firstPickup);
+    if (!courierStart) {
+      out.classList.add('err');
+      out.textContent = 'No fue posible ubicar el punto inicial del repartidor.';
+      return false;
+    }
+
+    geoHint.textContent = 'Calculando ruta real por las calles...';
+    const waypoints = [courierStart, ...pickups, destination];
+    const route = await fetchRoadRouteWithRetry(waypoints);
+    if (!route?.path?.length || !route?.legSeconds?.length) {
+      out.classList.add('err');
+      out.textContent = 'No fue posible cargar la ruta vial del pedido. Recarga la vista para reintentar.';
+      routeLine.setLatLngs([]);
+      return false;
+    }
+
+    roadPath = route.path;
+    roadCum = buildCumulativeDistances(roadPath);
+    roadLegSeconds = Array.isArray(route.legSeconds) ? route.legSeconds : [];
+    roadLegMeters = Array.isArray(route.legMeters) ? route.legMeters : [];
+    travelLegSeconds = buildTravelLegSeconds(roadLegSeconds);
+    routeDistanceMeters = Number(roadCum[roadCum.length - 1] || 0);
+    const pickupLegCount = Math.max(0, travelLegSeconds.length - 1);
+    const pickupTravelSeconds = sumSeconds(travelLegSeconds, pickupLegCount);
+    const deliveryTravelSeconds = Number(travelLegSeconds[travelLegSeconds.length - 1] || MIN_DELIVERY_TRAVEL_SECONDS);
+    assignmentAtMs = Number(startedAtMs || Date.now()) + (ASSIGN_DELAY_SECONDS * 1000);
+    pickupArrivalAtMs = assignmentAtMs + (pickupTravelSeconds * 1000);
+    pickupDepartureAtMs = pickupArrivalAtMs + (PICKUP_WAIT_SECONDS * 1000);
+    routeEndsAtMs = pickupDepartureAtMs + (deliveryTravelSeconds * 1000);
+    simStartMs = assignmentAtMs;
+    routeDurationSeconds = Math.max(1, (routeEndsAtMs - assignmentAtMs) / 1000);
+
+    renderTrackingMap();
+    writeTrackingPlan(assignmentAtMs);
+
+    out.textContent = '';
+    out.classList.remove('err');
+    geoHint.textContent = '';
+    return true;
+  }
+
+  function updateEtaUI(pedidoId) {
+    if (!pedidoId || !tracking?.getEtaLabel) {
+      etaValue.textContent = '—';
+      return;
+    }
+
+    etaValue.textContent = tracking.getEtaLabel(pedidoId) || '—';
+  }
+
+  async function markPedidoDelivered() {
+    if (!currentPedidoId || deliverySyncStarted) return;
+    deliverySyncStarted = true;
+    if (tracking?.markDelivered) {
+      await tracking.markDelivered(currentPedidoId);
+      return;
+    }
+    setActiveOrderStatus(currentPedidoId, 'delivered');
+  }
+
+  function updateTimeline(progress) {
+    setStepDone('assigned', true);
+    setStepDone('arrived_pickup', pickups.length > 0);
+    setStepDone('left_pickup', progress > 0.04);
+    setStepDone('arrived_destination', progress >= 1);
+
+    if (progress >= 1) {
+      statusValue.textContent = 'Tu pedido ha llegado a tu ubicación';
+      return;
+    }
+    if (progress > 0.04) {
+      statusValue.textContent = 'Repartidor en camino a tu ubicación';
+      return;
+    }
+    statusValue.textContent = 'Repartidor recogiendo tu pedido';
+  }
+
+  async function tickCourier() {
+    if (!roadPath.length || !roadCum || routeDistanceMeters <= 0 || routeDurationSeconds <= 0 || !assignmentAtMs) return;
+
+    const now = Date.now();
+    const stage = updateStatusAndTimeline(now);
+    const travelledMeters = getMetersAtTime(now);
+    const courierPos = pointAtDistance(roadPath, roadCum, travelledMeters) || roadPath[0];
+
+    if (stage !== 'assigning') {
+      courierMarker.setLatLng(courierPos);
+    }
+
+    const remainingKm = Math.max(0, (routeDistanceMeters - travelledMeters) / 1000);
+    setDistanceText(remainingKm);
+    updateEtaUI(currentPedidoId);
+
+    if (stage === 'arrived') {
+      await markPedidoDelivered();
+    }
+  }
+
+  async function main() {
+    const pedidoId = safeNumber(getQueryParam('pedido_id'));
+    if (!pedidoId) {
+      out.classList.add('err');
+      out.textContent = 'Falta pedido_id en la URL.';
+      map.setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
+      return;
+    }
+
+    currentPedidoId = pedidoId;
+    pedidoIdValue.textContent = `#${pedidoId}`;
+    courierValue.textContent = pickCourierName(pedidoId);
+
+    if (tracking?.syncDeliveredOrderIfNeeded) {
+      await tracking.syncDeliveredOrderIfNeeded(pedidoId);
+    }
+
+    const last = loadLastCheckout();
+    if (last?.pedidoId === pedidoId || String(last?.pedidoId) === String(pedidoId)) {
+      methodValue.textContent = String(last?.metodo || '—');
+      currentMetodo = String(last?.metodo || '').trim();
+      paidValue.textContent = formatMoneyCOP(Number(last?.total || 0));
+    } else {
+      methodValue.textContent = '—';
+      currentMetodo = '';
+      paidValue.textContent = '—';
+    }
+
+    await auth.ensureAuthenticatedSession();
+    const result = await auth.authenticatedFetch(`/api/pedidos/${encodeURIComponent(String(pedidoId))}`);
+    if (!result) return;
+    const { response: res, payload: pedido } = result;
+
+    if (!res.ok) {
+      out.classList.add('err');
+      out.textContent = JSON.stringify({ status: res.status, body: pedido }, null, 2);
+      map.setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
+      return;
+    }
+
+    const orderTotal = Number(pedido?.total || 0);
+    currentOrderTotal = orderTotal;
+    const currentEstado = String(pedido?.estado || '').trim().toUpperCase();
+    if (currentEstado === 'ENTREGADO' || currentEstado === 'FINALIZADO' || currentEstado === 'COMPLETADO') {
+      setActiveOrderStatus(pedidoId, 'delivered');
+      statusValue.textContent = 'Tu pedido fue entregado';
+      etaValue.textContent = 'Entregado';
+    } else {
+      setActiveOrderStatus(pedidoId, 'active');
+    }
+    if (paidValue.textContent === '—') {
+      paidValue.textContent = formatMoneyCOP(orderTotal);
+    }
+
+    const tip = loadTip(pedidoId);
+    const isCard = currentMetodo === 'tarjeta';
+    const locked = loadTipLock(pedidoId) || tip > 0;
+    if (locked) setTipLock(pedidoId, true);
+
+    tipInput.value = tip ? String(tip) : '';
+    updateTotalsUI(orderTotal, tip);
+
+    if (tip > 0) {
+      paidValue.textContent = formatMoneyCOP(orderTotal + tip);
+    }
+
+    if (locked) {
+      tipInput.disabled = true;
+      applyTipBtn.disabled = true;
+      applyTipBtn.style.opacity = '0.55';
+      applyTipBtn.style.cursor = 'not-allowed';
+    }
+
+    const coords = [];
+    const items = Array.isArray(pedido?.items) ? pedido.items : [];
+
+    itemsList.innerHTML = items.map((it) => {
+      const pub = it?.publicacion;
+      const title = pub?.titulo || 'Producto';
+      const qty = Number(it?.cantidad || 0);
+      const unit = Number(it?.precio_unitario || 0);
+      const u = pub?.ubicacion;
+      const lat = safeNumber(u?.latitud);
+      const lng = safeNumber(u?.longitud);
+      if (lat != null && lng != null) coords.push({ lat, lng });
+      return `<li>${String(title)} — ${qty} × ${formatMoneyCOP(unit)}</li>`;
+    }).join('');
+
+    pickups = uniquePickups(coords);
+
+    destination = await getDestinationFromPedido(pedido);
+    if (!destination) {
+      destination = await getDestinationFromCheckoutAddress(last, pedidoId);
+    }
+    if (!destination) {
+      destination = await getDestinationFromGeolocation();
+    }
+    if (!destination) {
+      const base = pickups.length ? pickups[pickups.length - 1] : DEFAULT_MAP_CENTER;
+      destination = { lat: base.lat + 0.012, lng: base.lng + 0.012 };
+    }
+
+    clearTimeline();
+    courierStart = pickups[0] ? buildCourierStartPoint(pickups[0]) : null;
+    renderTrackingMap();
+    statusValue.textContent = 'Ubicando puntos del pedido';
+    window.setTimeout(() => {
+      try { map.invalidateSize(); } catch {}
+    }, 50);
+
+    const existingPlan = tracking?.readTrackingPlan ? tracking.readTrackingPlan(pedidoId) : null;
+    const restoredPlan = restoreTrackingFromPlan(existingPlan);
+    const needsRouteUpgrade = !Array.isArray(existingPlan?.roadPath) || !existingPlan?.roadPath?.length;
+    if (!restoredPlan || needsRouteUpgrade) {
+      const ready = await setupTrackingRoute(Number(existingPlan?.startedAt || last?.createdAt || Date.now()));
+      if (!ready) {
+        map.setView([destination.lat, destination.lng], 14);
+        return;
+      }
+    }
+
+    const initialKm = routeDistanceMeters > 0 ? (routeDistanceMeters / 1000) : haversineKm(courierStart, destination);
+    setDistanceText(initialKm);
+    updateEtaUI(currentPedidoId);
+
+    await tickCourier();
+    window.setInterval(() => {
+      tickCourier().catch(() => {});
+    }, 500);
+  }
+
+  applyTipBtn.addEventListener('click', () => {
+    const pedidoId = safeNumber(getQueryParam('pedido_id'));
+    if (!pedidoId) return;
+
+    const tip = parseTipFromInput();
+    if (!tip) return;
+
+    const locked = loadTipLock(pedidoId);
+    if (locked) return;
+
+    const isCard = currentMetodo === 'tarjeta';
+    if (isCard) {
+      // Simula el débito real: registra un pago adicional por el valor de la propina.
+      auth.ensureAuthenticatedSession().then(async () => {
+        const r = await auth.authenticatedFetch('/api/pagos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pedido_id: Number(pedidoId), metodo: 'tarjeta', monto: Number(tip) }),
+        });
+
+        if (!r) return;
+        const { response, payload } = r;
+        if (!response.ok) {
+          out.classList.add('err');
+          out.textContent = JSON.stringify({ status: response.status, body: payload }, null, 2);
+          return;
+        }
+
+        saveTip(pedidoId, tip);
+        setTipLock(pedidoId, true);
+        updateTotalsUI(currentOrderTotal || 0, tip);
+        paidValue.textContent = formatMoneyCOP((currentOrderTotal || 0) + tip);
+
+        tipInput.disabled = true;
+        applyTipBtn.disabled = true;
+        applyTipBtn.style.opacity = '0.55';
+        applyTipBtn.style.cursor = 'not-allowed';
+      });
+      return;
+    }
+
+    saveTip(pedidoId, tip);
+    setTipLock(pedidoId, true);
+    updateTotalsUI(currentOrderTotal || 0, tip);
+    paidValue.textContent = formatMoneyCOP((currentOrderTotal || 0) + tip);
+
+    tipInput.disabled = true;
+    applyTipBtn.disabled = true;
+    applyTipBtn.style.opacity = '0.55';
+    applyTipBtn.style.cursor = 'not-allowed';
+  });
+
+  main();
+</script>
+{% endblock %}

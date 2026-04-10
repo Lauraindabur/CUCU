@@ -1,7 +1,7 @@
 from common.exceptions import ConflictError, NotFoundError
 
-from ..infra.factories import NotificacionFactory
-from ..models import Notificacion
+from ..infrastructure.factories import NotificacionFactory
+from ..infrastructure.models import Notificacion
 
 
 class NotificacionService:
