@@ -4,7 +4,7 @@ services:
     container_name: cucu-nginx
     depends_on:
       - django
-      - flask
+      - payment-service
     ports:
       - "80:80"
     volumes:
@@ -15,6 +15,6 @@ services:
     expose:
       - "8000"
 
-  flask:
+  payment-service:
     expose:
-      - "5000"
+      - "8080"

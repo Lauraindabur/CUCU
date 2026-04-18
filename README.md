@@ -13,9 +13,10 @@ python manage.py runserver ejecutar y montar el servidor
 Configuracion de Nginx para el taller:
 - El archivo nginx.conf en la raiz enruta /api/v1/ hacia Django (servicio django:8000).
 - Nginx reescribe /api/v1/... hacia /api/... porque Django hoy no usa versionado en sus URLs internas.
-- La ruta estrangulada /api/v2/pagos/ se envia a Flask (servicio flask:5000).
+- La ruta estrangulada principal /api/v2/payments se envia al microservicio de pagos (servicio payment-service:8080).
+- Se mantiene compatibilidad con /api/v2/pagos para redirigir o reescribir hacia /api/v2/payments.
 - Todo el trafico restante, incluyendo /, /static/ y /media/, permanece en Django.
-- Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y flask o ajustar los upstreams del archivo.
+- Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y payment-service o ajustar los upstreams del archivo.
 
 Snippet sugerido para docker-compose:
 - Revisar docker-compose.nginx.snippet.yml para agregar el servicio nginx cuando integren Docker.
