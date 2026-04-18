@@ -10,6 +10,26 @@ django-admin startproject config . es para crear la carpeta de config, y tiene l
 
 python manage.py runserver ejecutar y montar el servidor
 
+Solucion Arquitectonica (Snippet Nginx):
+```nginx
+server {
+        listen 80;
+
+        location /api/v1/ {
+                rewrite ^/api/v1/(.*)$ /api/$1 break;
+                proxy_pass http://django:8000;
+        }
+
+        location /api/v2/payments {
+                proxy_pass http://payment-service:8080;
+        }
+
+        location / {
+                proxy_pass http://django:8000;
+        }
+}
+```
+
 Configuracion de Nginx para el taller:
 - El archivo nginx.conf en la raiz enruta /api/v1/ hacia Django (servicio django:8000).
 - Nginx reescribe /api/v1/... hacia /api/... porque Django hoy no usa versionado en sus URLs internas.
@@ -17,6 +37,7 @@ Configuracion de Nginx para el taller:
 - La ruta /api/v2/payments sin slash final tambien se proxyea directamente para coincidir con el endpoint POST definido en Flask.
 - Se mantiene compatibilidad con /api/v2/pagos para redirigir o reescribir hacia /api/v2/payments.
 - Todo el trafico restante, incluyendo /, /static/ y /media/, permanece en Django.
+- La configuracion oficial de borde es nginx.conf en la raiz; la configuracion alternativa dentro de payment_microservice ya no se usa.
 - Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y payment-service o ajustar los upstreams del archivo.
 
 Snippet sugerido para docker-compose:
