@@ -10,6 +10,16 @@ django-admin startproject config . es para crear la carpeta de config, y tiene l
 
 python manage.py runserver ejecutar y montar el servidor
 
+Configuracion de Nginx para el taller:
+- El archivo nginx.conf en la raiz enruta /api/v1/ hacia Django (servicio django:8000).
+- Nginx reescribe /api/v1/... hacia /api/... porque Django hoy no usa versionado en sus URLs internas.
+- La ruta estrangulada /api/v2/pagos/ se envia a Flask (servicio flask:5000).
+- Todo el trafico restante, incluyendo /, /static/ y /media/, permanece en Django.
+- Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y flask o ajustar los upstreams del archivo.
+
+Snippet sugerido para docker-compose:
+- Revisar docker-compose.nginx.snippet.yml para agregar el servicio nginx cuando integren Docker.
+
 Configuración local opcional:
 - Crea un archivo `.env.local` en la raíz del proyecto.
 - Para habilitar Google Maps en seguimiento y publicar, define `GOOGLE_MAPS_API_KEY=tu_api_key`.
