@@ -14,6 +14,7 @@ Configuracion de Nginx para el taller:
 - El archivo nginx.conf en la raiz enruta /api/v1/ hacia Django (servicio django:8000).
 - Nginx reescribe /api/v1/... hacia /api/... porque Django hoy no usa versionado en sus URLs internas.
 - La ruta estrangulada principal /api/v2/payments se envia al microservicio de pagos (servicio payment-service:8080).
+- La ruta /api/v2/payments sin slash final tambien se proxyea directamente para coincidir con el endpoint POST definido en Flask.
 - Se mantiene compatibilidad con /api/v2/pagos para redirigir o reescribir hacia /api/v2/payments.
 - Todo el trafico restante, incluyendo /, /static/ y /media/, permanece en Django.
 - Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y payment-service o ajustar los upstreams del archivo.
