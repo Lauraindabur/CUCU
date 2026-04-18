@@ -2,10 +2,10 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import User
-from market.models import Pedido, Publicacion
+from accounts.infrastructure.models import User
+from market.infrastructure.models import Pedido, Publicacion
 
-from .models import Pago
+from .infrastructure.models import Pago
 
 
 class PagoCreateTests(TestCase):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Pago
+from .infrastructure.models import Pago
 
 
 @admin.register(Pago)

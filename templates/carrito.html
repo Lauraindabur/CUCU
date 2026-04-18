@@ -1,0 +1,582 @@
+{% extends "base_app.html" %}
+{% load static %}
+
+{% block title %}Carrito | CUCU{% endblock %}
+{% block eyebrow %}Carrito{% endblock %}
+{% block page_title %}Mi <span>carrito</span>{% endblock %}
+{% block page_lead %}Revisa tus productos y continúa al pago.{% endblock %}
+{% block hero_actions %}
+  <a class="btn btn-secondary" href="/ui/pedido/">Seguir comprando</a>
+  <a class="btn btn-secondary" href="/">Inicio</a>
+{% endblock %}
+{% block hero_points %}
+  <div class="hero-point"><span class="hero-point-badge">1</span><div><strong>Items claros</strong><p>El carrito se arma con lo que agregaste en la vista de compra.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">2</span><div><strong>Delivery fijo</strong><p>El delivery se calcula como <strong>$5.000 COP</strong> por pedido.</p></div></div>
+  <div class="hero-point"><span class="hero-point-badge">3</span><div><strong>Continuar</strong><p>Completa tus datos y el método de pago en el checkout.</p></div></div>
+{% endblock %}
+
+{% block head_extra %}
+  <style>
+    .page-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-panel {
+      display: none;
+    }
+
+    .section-title,
+    .section-hint {
+      display: none;
+    }
+
+    .surface {
+      padding-top: 0;
+    }
+  </style>
+{% endblock %}
+
+{% block section_title %}{% endblock %}
+{% block section_hint %}{% endblock %}
+
+{% block content %}
+  <style>
+    .cart-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      padding: 0 22px 22px;
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .cart-card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      border-radius: 22px;
+      box-shadow: 0 18px 54px rgba(31, 36, 48, 0.06);
+      padding: 16px;
+    }
+
+    .cart-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .cart-thumb {
+      width: 92px;
+      height: 92px;
+      border-radius: 18px;
+      object-fit: cover;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: rgba(31, 36, 48, 0.04);
+    }
+
+    .cart-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .cart-meta {
+      margin-top: 6px;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .cart-meta-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cart-stock-note {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(31, 36, 48, 0.05);
+      color: #505664;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .meta-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 3px;
+      background: rgba(30, 174, 122, 0.45);
+      flex: 0 0 auto;
+    }
+
+    .cart-controls {
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(31, 36, 48, 0.10);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .qty-btn {
+      width: 42px;
+      height: 38px;
+      border: 0;
+      background: transparent;
+      font-weight: 900;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .qty-btn:disabled {
+      color: #9aa0ad;
+      background: rgba(31, 36, 48, 0.04);
+      cursor: not-allowed;
+    }
+
+    .qty-val {
+      width: 44px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: var(--ink);
+      border-left: 1px solid rgba(31, 36, 48, 0.08);
+      border-right: 1px solid rgba(31, 36, 48, 0.08);
+      background: rgba(31, 36, 48, 0.02);
+    }
+
+    .cart-price {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      text-align: right;
+    }
+
+    .summary-title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-lines {
+      display: grid;
+      gap: 10px;
+      padding: 10px 0 14px;
+      border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 800;
+      color: #4e515a;
+    }
+
+    .summary-line strong {
+      color: var(--ink);
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 14px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .summary-foot {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .summary-actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .mini-label {
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .mini-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      outline: none;
+    }
+
+    @media (max-width: 980px) {
+      .cart-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <div class="cart-layout">
+    <div class="cart-items" id="cartItems"></div>
+
+    <aside class="cart-card" aria-label="Resumen del carrito">
+      <h3 class="summary-title">Resumen</h3>
+
+      <div class="summary-lines">
+        <div class="summary-line"><span>Subtotal</span><span id="subtotalValue">-</span></div>
+        <div class="summary-line"><span>Delivery</span><span id="deliveryValue">-</span></div>
+      </div>
+      <div class="summary-total"><span>Total</span><span id="totalValue">-</span></div>
+
+      <div class="summary-actions">
+        <a class="btn btn-primary" id="payButton" href="/ui/checkout/">Ir a pagar</a>
+        <button class="btn btn-secondary" id="clearButton" type="button">Vaciar carrito</button>
+      </div>
+
+      <div class="summary-foot">Pago de manera segura</div>
+
+      <pre id="out" class="out" aria-live="polite" style="margin-top: 14px;"></pre>
+    </aside>
+  </div>
+
+  <div id="emptyState" class="note" style="margin: 0 22px 22px;" hidden>
+    Tu carrito está vacío. Ve a <a href="/ui/pedido/"><strong>Comprar</strong></a> y agrega al menos un producto.
+  </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  const auth = window.CUCUAuth;
+  const DELIVERY_FEE = 5000;
+  const IMAGE_POOL = [
+    '{% static "images/bowl.png" %}',
+    '{% static "images/carnitas.png" %}',
+    '{% static "images/cesar.png" %}',
+    '{% static "images/bolognesa.png" %}',
+  ];
+  const IMAGE_BY_TITLE = {
+    'Bowl Saludable': '{% static "images/bowl.png" %}',
+    'Tacos de Carnitas': '{% static "images/carnitas.png" %}',
+    'Ensalada Cesar': '{% static "images/cesar.png" %}',
+    'Pasta Boloñesa': '{% static "images/bolognesa.png" %}',
+    'Pozole Rojo': '{% static "images/pozole.png" %}',
+    'Chilaquiles Verdes': '{% static "images/chilaquiles.png" %}',
+    'Lasagna Casera': '{% static "images/lasagna.png" %}',
+    'Brownie de Chocolate': '{% static "images/brownie.png" %}',
+    'Pizza Margarita': '{% static "images/pizza.png" %}',
+    'Cheesecake de Frutos Rojos': '{% static "images/cheesecake.png" %}',
+    'Ramen de Cerdo': '{% static "images/ramen.png" %}',
+    'Cookies Artesanales': '{% static "images/cookies.png" %}',
+    'Salchipapas': '{% static "images/salchipapa.png" %}',
+    'Carne a la parrilla': '{% static "images/carne.png" %}',
+    'Frijoles': '{% static "images/frijoles.png" %}',
+    'Arroz con pollo': '{% static "images/arroz.png" %}',
+  };
+
+  function imageForCartItem(publicacion, index, id) {
+    if (publicacion?.image_url) return String(publicacion.image_url);
+    const title = String(publicacion?.titulo || '').trim();
+    return IMAGE_BY_TITLE[title] || IMAGE_POOL[(id + index) % IMAGE_POOL.length];
+  }
+
+  const emptyState = document.getElementById('emptyState');
+  const cartItems = document.getElementById('cartItems');
+  const subtotalValue = document.getElementById('subtotalValue');
+  const deliveryValue = document.getElementById('deliveryValue');
+  const totalValue = document.getElementById('totalValue');
+  const clearButton = document.getElementById('clearButton');
+  const out = document.getElementById('out');
+
+  function formatMoneyCOP(value) {
+    return Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  }
+
+  function escapeHtml(text) {
+    return String(text || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function sellerName(id) {
+    const names = ['Andrea Martínez', 'Roberto López', 'Valeria Ruiz', 'Luis García', 'Carla Jiménez', 'Mario Sánchez'];
+    return names[Number(id || 0) % names.length];
+  }
+
+  function fakeDistanceKm(id) {
+    const base = 2.0 + ((Number(id || 0) % 18) / 10);
+    return Math.round(base * 10) / 10;
+  }
+
+  function loadSelection() {
+    return window.CUCUStorage?.loadCartSelection?.() || {};
+  }
+
+  function sanitizeSelection(selection) {
+    const safe = {};
+    Object.entries(selection || {}).forEach(([key, value]) => {
+      const id = Number(key);
+      const qty = Math.floor(Number(value || 0));
+      if (!Number.isFinite(id) || id <= 0) return;
+      if (!Number.isFinite(qty) || qty <= 0) return;
+      safe[String(id)] = qty;
+    });
+    return safe;
+  }
+
+  function selectionToPublicacionIds(selection) {
+    const ids = [];
+    Object.entries(selection).forEach(([id, qty]) => {
+      for (let i = 0; i < Number(qty || 0); i += 1) ids.push(Number(id));
+    });
+    return ids;
+  }
+
+  function updateHeaderBadge(selection) {
+    const cartCount = document.getElementById('cartCount');
+    if (!cartCount) return;
+    const count = Object.keys(selection).length;
+    cartCount.textContent = count > 0 ? String(count) : '';
+    cartCount.hidden = count === 0;
+  }
+
+  function setTotals({ subtotal, delivery, total }) {
+    subtotalValue.textContent = formatMoneyCOP(subtotal);
+    deliveryValue.textContent = formatMoneyCOP(delivery);
+    totalValue.textContent = formatMoneyCOP(total);
+  }
+
+  function getProductLimit(publicacion) {
+    const stock = Math.max(0, Math.floor(Number(publicacion?.stock || 0)));
+    const maximoPorVenta = Math.max(1, Math.floor(Number(publicacion?.maximo_por_venta || 5)));
+    return Math.max(0, Math.min(maximoPorVenta, stock));
+  }
+
+  function getLimitMessage(publicacion) {
+    const stock = Math.max(0, Math.floor(Number(publicacion?.stock || 0)));
+    const limit = getProductLimit(publicacion);
+    const maximoPorVenta = Math.max(1, Math.floor(Number(publicacion?.maximo_por_venta || 5)));
+    if (stock <= 0 || limit <= 0) return 'Sin stock disponible';
+    if (stock < maximoPorVenta) return `Stock disponible: ${stock} · Límite actual: ${limit}`;
+    return `Stock disponible: ${stock} · Límite por pedido: ${limit}`;
+  }
+
+  async function hydrate() {
+    out.textContent = '';
+    const rawSelection = loadSelection();
+    let selection = sanitizeSelection(rawSelection);
+    window.CUCUStorage?.saveCartSelection?.(selection);
+    updateHeaderBadge(selection);
+
+    let ids = Object.keys(selection);
+
+    if (!ids.length) {
+      emptyState.hidden = false;
+      cartItems.innerHTML = '';
+      setTotals({ subtotal: 0, delivery: DELIVERY_FEE, total: DELIVERY_FEE });
+      return;
+    }
+
+    emptyState.hidden = true;
+
+    await auth.ensureAuthenticatedSession();
+
+    let publicaciones = null;
+    try {
+      const cachedRaw = localStorage.getItem('publicaciones_cache');
+      const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
+      if (cached && Array.isArray(cached.items) && (Date.now() - Number(cached.ts || 0)) < 60_000) {
+        publicaciones = cached.items;
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!Array.isArray(publicaciones)) {
+      const result = await auth.authenticatedFetch('/api/publicaciones');
+      if (!result) return;
+
+      const { response: res, payload } = result;
+      if (!res.ok || !Array.isArray(payload)) {
+        out.textContent = 'No se pudieron cargar las publicaciones para armar el carrito.';
+        return;
+      }
+      publicaciones = payload;
+      try {
+        localStorage.setItem('publicaciones_cache', JSON.stringify({ ts: Date.now(), items: publicaciones }));
+      } catch {
+        // ignore
+      }
+    }
+
+    const byId = new Map(publicaciones.map((p) => [Number(p.id), p]));
+
+    const limitedSelection = {};
+    Object.entries(selection).forEach(([idStr, qtyValue]) => {
+      const id = Number(idStr);
+      const publicacion = byId.get(id);
+      if (!publicacion) return;
+      const limit = getProductLimit(publicacion);
+      if (limit <= 0) return;
+      limitedSelection[idStr] = Math.min(limit, Math.max(1, Number(qtyValue || 0)));
+    });
+    selection = sanitizeSelection(limitedSelection);
+    window.CUCUStorage?.saveCartSelection?.(selection);
+    updateHeaderBadge(selection);
+    ids = Object.keys(selection);
+
+    if (!ids.length) {
+      emptyState.hidden = false;
+      cartItems.innerHTML = '';
+      setTotals({ subtotal: 0, delivery: DELIVERY_FEE, total: DELIVERY_FEE });
+      out.textContent = 'Tu carrito se ajustó porque algunos productos ya no tienen stock suficiente.';
+      return;
+    }
+
+    let subtotal = 0;
+    cartItems.innerHTML = ids.map((idStr, index) => {
+      const id = Number(idStr);
+      const qty = Number(selection[idStr] || 0);
+      const pub = byId.get(id);
+      const title = pub?.titulo || `Publicación #${id}`;
+      const desc = pub?.descripcion || '';
+      const unit = Number(pub?.precio || 0);
+      const limitMessage = getLimitMessage(pub);
+      const limit = getProductLimit(pub);
+      const disableIncrease = qty >= limit;
+      const lineTotal = unit * qty;
+      subtotal += lineTotal;
+
+      const distance = fakeDistanceKm(id);
+      const seller = sellerName(id);
+      const image = imageForCartItem(pub, index, id);
+
+      return `
+        <article class="cart-card" data-cart-id="${id}">
+          <div class="cart-row">
+            <img class="cart-thumb" src="${image}" alt="${escapeHtml(title)}" loading="lazy" />
+            <div>
+              <h3 class="cart-title">${escapeHtml(title)}</h3>
+              <div class="cart-meta">
+                <div class="cart-meta-line"><span class="meta-dot" aria-hidden="true"></span><span>${distance} km · ${escapeHtml(seller)}</span></div>
+                <div class="cart-meta-line"><span class="meta-dot" aria-hidden="true"></span><span>${escapeHtml(desc || 'Preparación casera')}</span></div>
+              </div>
+              <div class="cart-stock-note">${escapeHtml(limitMessage)}</div>
+              <div class="cart-controls" role="group" aria-label="Cantidad">
+                <button class="qty-btn" type="button" data-qty-action="dec" data-cart-id="${id}" aria-label="Disminuir">−</button>
+                <div class="qty-val" data-qty-value="${id}">${qty}</div>
+                <button class="qty-btn" type="button" data-qty-action="inc" data-cart-id="${id}" aria-label="Aumentar" ${disableIncrease ? 'disabled' : ''}>+</button>
+              </div>
+            </div>
+            <div class="cart-price">${formatMoneyCOP(lineTotal)}</div>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    const delivery = DELIVERY_FEE;
+    const total = subtotal + delivery;
+    setTotals({ subtotal, delivery, total });
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target?.closest?.('[data-qty-action]');
+    if (!btn) return;
+    const action = btn.getAttribute('data-qty-action');
+    const id = btn.getAttribute('data-cart-id');
+    if (!id) return;
+
+    const selection = sanitizeSelection(loadSelection());
+    const key = String(Number(id));
+    const current = Number(selection[key] || 0);
+
+    let publicaciones = [];
+    try {
+      const cachedRaw = localStorage.getItem('publicaciones_cache');
+      const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
+      if (cached && Array.isArray(cached.items)) publicaciones = cached.items;
+    } catch {
+      publicaciones = [];
+    }
+
+    const publicacion = publicaciones.find((item) => Number(item?.id) === Number(id));
+    const limit = getProductLimit(publicacion);
+
+    if (action === 'inc') {
+      if (limit <= 0) {
+        delete selection[key];
+        out.textContent = 'Este producto ya no tiene stock disponible.';
+      } else {
+        selection[key] = Math.min(limit, Math.max(1, current + 1));
+        if (current >= limit) {
+          const stock = Math.max(0, Math.floor(Number(publicacion?.stock || 0)));
+          const maximoPorVenta = Math.max(1, Math.floor(Number(publicacion?.maximo_por_venta || 5)));
+          out.textContent = stock < maximoPorVenta
+            ? `Solo puedes agregar ${limit} unidad${limit === 1 ? '' : 'es'} porque ese es el stock disponible.`
+            : `Solo puedes agregar hasta ${limit} unidad${limit === 1 ? '' : 'es'} por pedido.`;
+        } else {
+          out.textContent = '';
+        }
+      }
+    } else if (action === 'dec') {
+      if (current <= 1) {
+        delete selection[key];
+      } else {
+        selection[key] = current - 1;
+      }
+      out.textContent = '';
+    }
+
+    window.CUCUStorage?.saveCartSelection?.(selection);
+    hydrate();
+  });
+
+  // Checkout (datos + pago) ahora se realiza en /ui/checkout/
+
+  clearButton.addEventListener('click', () => {
+    window.CUCUStorage?.clearCartSelection?.();
+    hydrate();
+  });
+
+  window.addEventListener('storage', (event) => {
+    const cartStorageKey = window.CUCUStorage?.getCartStorageKey?.();
+    if (event.key === cartStorageKey || event.key === 'cart_selection_sync_version' || event.key === 'publicaciones_sync_version') {
+      hydrate();
+    }
+  });
+
+  hydrate();
+</script>
+{% endblock %}

@@ -10,6 +10,21 @@ django-admin startproject config . es para crear la carpeta de config, y tiene l
 
 python manage.py runserver ejecutar y montar el servidor
 
+Configuracion de Nginx para el taller:
+- El archivo nginx.conf en la raiz enruta /api/v1/ hacia Django (servicio django:8000).
+- Nginx reescribe /api/v1/... hacia /api/... porque Django hoy no usa versionado en sus URLs internas.
+- La ruta estrangulada principal /api/v2/payments se envia al microservicio de pagos (servicio payment-service:8080).
+- Se mantiene compatibilidad con /api/v2/pagos para redirigir o reescribir hacia /api/v2/payments.
+- Todo el trafico restante, incluyendo /, /static/ y /media/, permanece en Django.
+- Cuando integren docker-compose.yml, los nombres de servicio deben coincidir con django y payment-service o ajustar los upstreams del archivo.
+
+Snippet sugerido para docker-compose:
+- Revisar docker-compose.nginx.snippet.yml para agregar el servicio nginx cuando integren Docker.
+
+Configuración local opcional:
+- Crea un archivo `.env.local` en la raíz del proyecto.
+- Para habilitar Google Maps en seguimiento y publicar, define `GOOGLE_MAPS_API_KEY=tu_api_key`.
+
 Estos comandos fueron para crear modulos de la aplicación, ya con los archivos necesarios para agregar la logica del modulo 
 python manage.py startapp accounts
 python manage.py startapp trust
@@ -104,13 +119,5 @@ views.py -> Reune los metodos anteriores solo para usarlos de acuerdo al get/pos
         MisNotificacionesView() -> GET /api/notificaciones/ — obtiene el usuario del token JWT, busca sus notificaciones,
             devuelve lista de notis en JSON
 
-ACEPTAR PEDIDO 
-
-Solo el vendedor puede aceptar: AcceptOrderService.accept_order() verifica que pedido.publicacion.usuario_id == user.id, si no lanza PermissionDeniedError -> 403 en services.py y views.py.
-Solo se aceptan pedidos PENDIENTE: si el estado no es PENDIENTE lanza ValidationError -> 400 en services.py.
-Cambia estado a ACEPTADO: pedido.estado = "ACEPTADO" y pedido.save(update_fields=["estado"]) en services.py.
-
-Al aceptar se notifica al comprador: AcceptOrderService.accept_order() llama a NotificacionService.enviar() con el usuario que hizo el pedido y mensaje "Tu pedido fue aceptado" en services.py.
---------------------------------------------
 
 -->

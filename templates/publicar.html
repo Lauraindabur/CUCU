@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Publicar un platillo | CUCU</title>
+  <meta name="color-scheme" content="light" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --ink: #1f2430;
+      --muted: #6f7483;
+      --line: rgba(31, 36, 48, 0.08);
+      --surface: rgba(255, 255, 255, 0.96);
+      --orange: #ff6a1a;
+      --orange-deep: #f25c10;
+      --green: #7ea86f;
+      --shadow: 0 18px 54px rgba(31, 36, 48, 0.08);
+      --wrap: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top center, rgba(255, 106, 26, 0.08), transparent 26%),
+        linear-gradient(180deg, #fffdfa 0%, #fcf8f3 54%, #fffdfb 100%);
+      font-family: 'Manrope', sans-serif;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+
+    .shell { width: min(var(--wrap), calc(100vw - 36px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 253, 250, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(31, 36, 48, 0.05);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 88px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+      box-shadow: 0 8px 18px rgba(242, 92, 16, 0.22);
+      flex: 0 0 auto;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      color: #474d5c;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .nav-link {
+      position: relative;
+      padding: 8px 0;
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -14px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--orange);
+    }
+
+    .nav-tools {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tool-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 8px 20px rgba(31, 36, 48, 0.04);
+    }
+
+    .tool-link.icon-only {
+      position: relative;
+      justify-content: center;
+      width: 56px;
+      min-width: 56px;
+      padding: 0;
+      border-radius: 999px;
+    }
+
+    .tool-icon { width: 20px; height: 20px; color: #2d3340; }
+
+    .tool-badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #fff1e7;
+      color: var(--orange-deep);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tool-link.icon-only .tool-badge {
+      position: absolute;
+      top: 4px;
+      right: 3px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      box-shadow: 0 0 0 4px #fff;
+    }
+
+    .page { padding: 28px 0 40px; }
+
+    .editor {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .editor-top {
+      padding: 26px 28px 18px;
+      border-bottom: 1px solid rgba(31, 36, 48, 0.06);
+    }
+
+    .editor-title {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 38px;
+      letter-spacing: -0.05em;
+    }
+
+    .editor-lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .editor-body {
+      display: grid;
+      grid-template-columns: 1fr 1.02fr;
+      gap: 18px;
+      padding: 18px 22px 24px;
+    }
+
+    .panel { display: grid; gap: 14px; align-content: start; }
+
+    .field,
+    .status-note,
+    .map-panel,
+    .empty-preview,
+    .image-preview,
+    .helper-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #555b69;
+    }
+
+    .field-label small {
+      color: #9aa0ad;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 50px;
+      border: 0;
+      outline: none;
+      padding: 0 14px;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .field.autocomplete {
+      position: relative;
+      overflow: visible;
+    }
+
+    .field textarea {
+      min-height: 144px;
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      display: none;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 34px rgba(31, 36, 48, 0.12);
+      z-index: 25;
+    }
+
+    .suggestions.is-open {
+      display: grid;
+      gap: 6px;
+    }
+
+    .suggestion-item {
+      width: 100%;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: #48505f;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      gap: 4px;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item:focus {
+      background: #f6f4f1;
+      outline: none;
+    }
+
+    .suggestion-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #2b3240;
+    }
+
+    .suggestion-subtitle {
+      font-size: 12px;
+      color: #7a818f;
+      line-height: 1.45;
+    }
+
+    .split-row {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 12px;
+    }
+
+    .image-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-input { display: none; }
+
+    .add-chip,
+    .upload-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: #fff;
+      color: #666d7c;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .empty-preview,
+    .image-preview {
+      min-height: 260px;
+      overflow: hidden;
+    }
+
+    .empty-preview {
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #fffefe 0%, #fbf7f2 100%);
+      color: #8a909c;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .empty-preview strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #555b69;
+      font-size: 18px;
+    }
+
+    .image-preview {
+      display: none;
+      background: #f5eee7;
+    }
+
+    .image-preview.is-visible {
+      display: block;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .helper-card {
+      padding: 16px;
+      color: #6a7080;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .helper-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #2f3542;
+      font-size: 14px;
+    }
+
+    .ingredients {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 34px;
+    }
+
+    .ingredients.is-empty::before {
+      content: 'Aún no has agregado ingredientes.';
+      color: #8f95a2;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chip {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      background: #fbf8f4;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #525866;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chip button {
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(31, 36, 48, 0.06);
+      color: #59606f;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .map-panel {
+      overflow: hidden;
+      padding: 0;
+      background: #f2f7ff;
+    }
+
+    #publishMap {
+      width: 100%;
+      height: 360px;
+    }
+
+    .map-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid rgba(31, 36, 48, 0.06);
+      background: rgba(255, 255, 255, 0.96);
+      flex-wrap: wrap;
+    }
+
+    .map-toolbar span {
+      color: #626877;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .location-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #5a606d;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .toggle input {
+      appearance: none;
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: #d9dddf;
+      position: relative;
+      cursor: pointer;
+      transition: background 160ms ease;
+    }
+
+    .toggle input::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 3px 8px rgba(31, 36, 48, 0.14);
+      transition: transform 160ms ease;
+    }
+
+    .toggle input:checked { background: var(--green); }
+    .toggle input:checked::after { transform: translateX(18px); }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 20px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(255, 92, 43, 0.22);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .status-note {
+      padding: 14px 16px;
+      color: #6a7080;
+      font-size: 13px;
+      line-height: 1.6;
+      border-style: dashed;
+    }
+
+    .status-note.ok {
+      color: #147352;
+      border-color: rgba(30, 174, 122, 0.24);
+      background: rgba(30, 174, 122, 0.06);
+    }
+
+    .status-note.err {
+      color: #a94e47;
+      border-color: rgba(222, 95, 88, 0.24);
+      background: rgba(222, 95, 88, 0.06);
+    }
+
+    .footnote {
+      color: #7f8592;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .footer {
+      margin-top: 18px;
+      padding: 22px 0 16px;
+      border-top: 1px solid rgba(36, 38, 45, 0.06);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .footer-brand { display: grid; gap: 12px; }
+    .footer-brand .brand { font-size: 18px; }
+    .footer-note,
+    .footer-link { color: #6d6f79; font-size: 13px; line-height: 1.7; }
+    .footer-column { display: grid; gap: 8px; align-content: start; }
+    .footer-column strong { font-size: 15px; }
+    .socials { display: flex; align-items: center; gap: 14px; }
+    .socials a { font-weight: 800; color: #464852; }
+    .footer-bottom {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(36, 38, 45, 0.06);
+      text-align: center;
+      color: #7d7f88;
+      font-size: 12px;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px;
+    }
+
+    .leaflet-bar a,
+    .leaflet-control-zoom a {
+      background: rgba(255, 255, 255, 0.92) !important;
+      color: #4c5360 !important;
+      border-bottom-color: rgba(31, 36, 48, 0.08) !important;
+    }
+
+    .leaflet-control-zoom {
+      border: 1px solid rgba(31, 36, 48, 0.08) !important;
+      border-radius: 14px !important;
+      overflow: hidden;
+      box-shadow: 0 12px 24px rgba(31, 36, 48, 0.08);
+    }
+
+    .leaflet-tile.cucu-map-base {
+      filter: sepia(0.18) hue-rotate(195deg) saturate(1.35) brightness(1.08) contrast(1.03);
+    }
+
+    .leaflet-tile.cucu-map-labels {
+      filter: grayscale(1) sepia(1) hue-rotate(195deg) saturate(4.6) brightness(1.12) contrast(1.12);
+    }
+
+    .leaflet-marker-icon {
+      filter: hue-rotate(150deg) saturate(2.1) brightness(1.05) contrast(1.02);
+    }
+
+    .leaflet-marker-shadow {
+      opacity: 0.28;
+    }
+
+    @media (max-width: 1020px) {
+      .editor-body,
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(var(--wrap), calc(100vw - 20px)); }
+      .nav {
+        padding: 14px 0;
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .nav-links,
+      .nav-tools { width: 100%; flex-wrap: wrap; }
+      .editor-top { padding: 22px 18px 16px; }
+      .editor-body { padding: 16px; }
+      .split-row { grid-template-columns: 1fr; }
+      .actions { justify-content: stretch; }
+      .actions .btn { width: 100%; }
+      .map-toolbar { align-items: flex-start; }
+      #publishMap { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>CUCU</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a class="nav-link" href="/">Inicio</a>
+        <a class="nav-link" href="/ui/pedido/">Compra</a>
+        <a class="nav-link active" href="/ui/publicar/">Vende</a>
+      </nav>
+      <div class="nav-tools">
+        <a class="tool-link icon-only" id="cartLink" href="/ui/carrito/" aria-label="Carrito">
+          <svg class="tool-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8h10l-1 9H9L8 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 8a2 2 0 1 1 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.5 20a1 1 0 1 0 0 .01M16.5 20a1 1 0 1 0 0 .01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="tool-badge" id="cartCount">0</span>
+        </a>
+        <a class="tool-link" id="profileLink" href="/ui/perfil/">Perfil</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page shell">
+    <section class="editor">
+      <div class="editor-top">
+        <h1 class="editor-title">Publicar un platillo</h1>
+        <p class="editor-lead">Esta es la primera vista donde se fija la ubicación real del producto. Desde aquí el sistema podrá comparar la posición del vendedor con la del comprador y mostrar distancias reales dentro del flujo de CUCU.</p>
+      </div>
+
+      <form id="form" class="editor-body">
+        <section class="panel">
+          <div class="helper-card">
+            <strong>Cómo ubicar tu punto de venta</strong>
+            <span>Escribe una dirección (o un lugar) como “EAFIT”, pulsa “Ubicar dirección”, o mueve el marcador directamente sobre el mapa para guardar una ubicación más exacta.</span>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Ubicación del punto de entrega</span><small>*</small></div>
+            <div class="map-panel">
+              <div id="publishMap" aria-label="Mapa para ubicar el producto"></div>
+              <div class="map-toolbar">
+                <span id="mapSummary">Puedes escribir, hacer clic en el mapa, arrastrar el pin o usar tu ubicación actual.</span>
+                <div class="location-actions">
+                  <button class="add-chip" id="locateAddressButton" type="button">Ubicar dirección</button>
+                  <button class="add-chip" id="geolocateBtn" type="button">Usar mi ubicación</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Imagen del platillo</span></div>
+            <div class="image-tools">
+              <label class="upload-button" for="imageInput">+ Añadir imagen</label>
+              <button class="add-chip" id="removeImageButton" type="button" hidden>Quitar imagen</button>
+              <input class="hidden-input" id="imageInput" type="file" accept="image/*" />
+            </div>
+          </div>
+
+          <div class="empty-preview" id="emptyPreview">
+            <div>
+              <strong>Aún no has añadido imagen</strong>
+              <span>Cuando subas una foto, aquí aparecerá la vista previa del platillo.</span>
+            </div>
+          </div>
+
+          <div class="image-preview" id="imagePreview">
+            <img id="previewImage" alt="Vista previa del platillo" src="" />
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="split-row">
+            <div>
+              <div class="field-label"><span>Nombre del platillo</span><small>*</small></div>
+              <div class="field"><input name="titulo" required maxlength="255" placeholder="Bowl saludable" /></div>
+            </div>
+            <div>
+              <div class="field-label"><span>Precio</span><small>*</small></div>
+                <div class="field"><input name="precio" required type="number" min="0.01" step="any" inputmode="decimal" placeholder="19500" /></div>
+            </div>
+          </div>
+
+          <div class="split-row">
+            <div>
+              <div class="field-label"><span>Stock disponible</span><small>*</small></div>
+              <div class="field"><input name="stock" required type="number" min="0" step="1" inputmode="numeric" placeholder="10" /></div>
+            </div>
+            <div>
+              <div class="field-label"><span>Máximo permitido por venta</span><small>*</small></div>
+              <div class="field"><input name="maximo_por_venta" required type="number" min="1" step="1" inputmode="numeric" value="5" /></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Tipo de comida</span></div>
+            <div class="field">
+              <select id="tipoComidaSelect">
+                <option value="saludable">Saludable</option>
+                <option value="mexicana">Mexicana</option>
+                <option value="italiana">Italiana</option>
+                <option value="postres">Postres</option>
+                <option value="otra">Otra</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Ingredientes incluidos</span></div>
+            <div class="ingredients is-empty" id="ingredientList"></div>
+            <button class="add-chip" id="addIngredientPrimary" type="button">+ Añadir ingrediente</button>
+          </div>
+
+          <div class="split-row">
+            <div>
+              <div class="field-label"><span>Dirección</span><small>*</small></div>
+              <div class="field autocomplete">
+                <input name="direccion_texto" id="direccionInput" required maxlength="255" placeholder="Cra 43A #6 Sur-15, El Poblado, Medellín" autocomplete="off" />
+                <div class="suggestions" id="addressSuggestions" aria-label="Sugerencias de dirección"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Preparación</span><small>*</small></div>
+            <div class="field"><textarea name="descripcion" required placeholder="Describe porciones, ingredientes, presentación y detalles importantes del pedido."></textarea></div>
+          </div>
+
+          <div>
+            <div class="field-label"><span>Disponible ahora</span></div>
+            <div class="field" style="padding: 13px 14px;">
+              <label class="toggle">
+                <input id="availableToggle" type="checkbox" checked />
+                <span>Disponible ahora</span>
+              </label>
+            </div>
+          </div>
+
+          <input name="latitud" id="latitudInput" type="hidden" />
+          <input name="longitud" id="longitudInput" type="hidden" />
+
+          <div class="actions">
+            <button class="btn btn-secondary" id="cancelButton" type="button">Cancelar</button>
+            <button class="btn btn-primary" type="submit">Publicar platillo</button>
+          </div>
+
+          <div class="footnote">Debes cumplir con nuestras normas comunitarias y ubicar correctamente tu punto de venta.</div>
+          <div class="status-note" id="statusBox">El mapa guardará la ubicación exacta del producto para que CUCU calcule distancias reales con respecto al comprador.</div>
+        </section>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span>CUCU</span>
+          </a>
+          <span class="footer-note">Hecho para tu barrio, hecho con amor.</span>
+        </div>
+
+        <div class="footer-column">
+          <strong>Explorar</strong>
+          <a class="footer-link" href="/ui/pedido/">Menú</a>
+          <a class="footer-link" href="/">Cómo funciona</a>
+        </div>
+
+        <div class="footer-column">
+          <strong>Vender</strong>
+          <a class="footer-link" href="/ui/publicar/">Cómo funciona</a>
+          <a class="footer-link" href="/ui/publicar/">Mis ventas</a>
+        </div>
+
+        <div class="footer-column">
+          <strong>Legal</strong>
+          <a class="footer-link" href="#">Publicar plato</a>
+          <a class="footer-link" href="#">Privacidad</a>
+          <a class="footer-link" href="#">Contacto</a>
+        </div>
+
+        <div class="footer-column">
+          <strong>Síguenos</strong>
+          <div class="socials">
+            <a href="#">f</a>
+            <a href="#">ig</a>
+            <a href="#">yt</a>
+            <a href="#">x</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">© 2025 CUCU. Todos los derechos reservados.</div>
+    </footer>
+  </main>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const GOOGLE_MAPS_API_KEY = '{{ google_maps_api_key|escapejs }}';
+    const MEDELLIN_CENTER = { lat: 6.244203, lng: -75.581212 };
+
+    const imageInput = document.getElementById('imageInput');
+    const removeImageButton = document.getElementById('removeImageButton');
+    const emptyPreview = document.getElementById('emptyPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const ingredientList = document.getElementById('ingredientList');
+    const addIngredientPrimary = document.getElementById('addIngredientPrimary');
+    const form = document.getElementById('form');
+    const statusBox = document.getElementById('statusBox');
+    const direccionInput = document.getElementById('direccionInput');
+    const addressSuggestions = document.getElementById('addressSuggestions');
+    const mapSummary = document.getElementById('mapSummary');
+    const geolocateBtn = document.getElementById('geolocateBtn');
+    const locateAddressButton = document.getElementById('locateAddressButton');
+    const latitudInput = document.getElementById('latitudInput');
+    const longitudInput = document.getElementById('longitudInput');
+    const tipoComidaSelect = document.getElementById('tipoComidaSelect');
+    const cancelButton = document.getElementById('cancelButton');
+    const cartCount = document.getElementById('cartCount');
+    const profileLink = document.getElementById('profileLink');
+
+    let ingredientState = [];
+    let map;
+    let marker;
+    let reverseGeocodeAbortController = null;
+    let searchAbortController = null;
+    let suggestionAbortController = null;
+    let suggestionItems = [];
+    let activeSuggestionIndex = -1;
+    let autocompleteTimer = null;
+
+    function clearSession() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh');
+    }
+
+    function redirectToLogin() {
+      clearSession();
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/ui/login/?next=${next}`;
+    }
+
+    async function refreshAccessToken() {
+      const refresh = localStorage.getItem('refresh');
+      if (!refresh) return null;
+
+      const response = await fetch('/api/token/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.access) {
+        clearSession();
+        return null;
+      }
+
+      localStorage.setItem('token', String(payload.access));
+      if (payload.refresh) localStorage.setItem('refresh', String(payload.refresh));
+      return String(payload.access);
+    }
+
+    async function authenticatedFetch(url, options = {}, retry = true) {
+      const token = localStorage.getItem('token') || await refreshAccessToken();
+      if (!token) {
+        redirectToLogin();
+        return null;
+      }
+
+      const headers = {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      };
+      const response = await fetch(url, { ...options, headers });
+      const payload = await response.json().catch(() => null);
+
+      if (response.status === 401 && retry) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          redirectToLogin();
+          return null;
+        }
+
+        const retryResponse = await fetch(url, {
+          ...options,
+          headers: {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${refreshed}`,
+          },
+        });
+        const retryPayload = await retryResponse.json().catch(() => null);
+        if (retryResponse.status === 401) {
+          redirectToLogin();
+          return null;
+        }
+        return { response: retryResponse, payload: retryPayload };
+      }
+
+      return { response, payload };
+    }
+
+    async function ensureAuthenticatedSession() {
+      const token = localStorage.getItem('token') || await refreshAccessToken();
+      if (!token) redirectToLogin();
+    }
+
+    function setStatus(message, type = '') {
+      statusBox.textContent = message;
+      statusBox.className = `status-note${type ? ` ${type}` : ''}`;
+    }
+
+    function syncCartCount() {
+      const selection = window.CUCUStorage?.loadCartSelection?.() || {};
+
+      const safeSelection = {};
+      Object.entries(selection || {}).forEach(([key, value]) => {
+        const id = Number(key);
+        const qty = Math.floor(Number(value || 0));
+        if (!Number.isFinite(id) || id <= 0) return;
+        if (!Number.isFinite(qty) || qty <= 0) return;
+        safeSelection[String(id)] = qty;
+      });
+
+      const count = Object.keys(safeSelection).length;
+      cartCount.textContent = count > 0 ? String(count) : '';
+      cartCount.hidden = count === 0;
+    }
+
+    function clearPublicationCaches() {
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (key === 'publicaciones_cache' || key.startsWith('pubs_cercanas:')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      } catch {
+        // ignore cache cleanup errors
+      }
+    }
+
+    function syncPublicationCaches(publicacion) {
+      if (!publicacion || typeof publicacion !== 'object') return;
+
+      try {
+        const cachedRaw = localStorage.getItem('publicaciones_cache');
+        const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
+        if (cached && Array.isArray(cached.items)) {
+          const nextItems = [publicacion, ...cached.items.filter((item) => Number(item?.id) !== Number(publicacion.id))];
+          localStorage.setItem('publicaciones_cache', JSON.stringify({ ts: Date.now(), items: nextItems }));
+        }
+      } catch {
+        // ignore cache sync errors
+      }
+
+      try {
+        localStorage.setItem('last_created_publicacion', JSON.stringify({ ts: Date.now(), publicacion }));
+        localStorage.setItem('publicaciones_sync_version', String(Date.now()));
+      } catch {
+        // ignore sync broadcast errors
+      }
+    }
+
+    async function loadProfile() {
+      const result = await authenticatedFetch('/api/me');
+      if (!result) return;
+      const { response, payload } = result;
+      if (!response.ok || !payload) return;
+      const label = String(payload.nombre || payload.email || 'Perfil').trim();
+      profileLink.textContent = label.split(/\s+/).slice(0, 1).join(' ') || 'Perfil';
+      profileLink.title = label;
+    }
+
+    function renderIngredients() {
+      if (!ingredientState.length) {
+        ingredientList.classList.add('is-empty');
+        ingredientList.innerHTML = '';
+        return;
+      }
+
+      ingredientList.classList.remove('is-empty');
+      ingredientList.innerHTML = ingredientState.map((ingredient, index) => `
+        <span class="chip">
+          <span>${ingredient}</span>
+          <button type="button" data-remove-ingredient="${index}" aria-label="Eliminar ingrediente">×</button>
+        </span>
+      `).join('');
+    }
+
+    function addIngredient() {
+      const value = window.prompt('Añade un ingrediente');
+      if (!value) return;
+      const trimmed = value.trim();
+      if (!trimmed) return;
+      ingredientState = [...ingredientState, trimmed];
+      renderIngredients();
+    }
+
+    function setPreviewImage(src) {
+      if (!src) {
+        emptyPreview.style.display = 'grid';
+        imagePreview.classList.remove('is-visible');
+        previewImage.removeAttribute('src');
+        if (removeImageButton) removeImageButton.hidden = true;
+        return;
+      }
+
+      previewImage.src = src;
+      emptyPreview.style.display = 'none';
+      imagePreview.classList.add('is-visible');
+      if (removeImageButton) removeImageButton.hidden = false;
+    }
+
+    function clearSelectedImage() {
+      if (imageInput) imageInput.value = '';
+      setPreviewImage('');
+    }
+
+    imageInput.addEventListener('click', () => {
+      imageInput.value = '';
+    });
+
+    function updateCoordinateInputs(lat, lng) {
+      latitudInput.value = Number(lat).toFixed(6);
+      longitudInput.value = Number(lng).toFixed(6);
+    }
+
+    function updateMapSummary(message) {
+      mapSummary.textContent = message;
+    }
+
+    function clearSuggestions() {
+      suggestionItems = [];
+      activeSuggestionIndex = -1;
+      addressSuggestions.innerHTML = '';
+      addressSuggestions.classList.remove('is-open');
+    }
+
+    function renderSuggestions(items) {
+      suggestionItems = items;
+      activeSuggestionIndex = -1;
+
+      if (!items.length) {
+        clearSuggestions();
+        return;
+      }
+
+      addressSuggestions.innerHTML = items.map((item, index) => `
+        <button class="suggestion-item" type="button" data-suggestion-index="${index}">
+          <span class="suggestion-title">${item.primary}</span>
+          <span class="suggestion-subtitle">${item.secondary}</span>
+        </button>
+      `).join('');
+      addressSuggestions.classList.add('is-open');
+    }
+
+    function highlightSuggestion(index) {
+      const buttons = [...addressSuggestions.querySelectorAll('[data-suggestion-index]')];
+      buttons.forEach((button, buttonIndex) => {
+        if (buttonIndex === index) button.focus();
+      });
+      activeSuggestionIndex = index;
+    }
+
+    async function fetchAddressSuggestions(query) {
+      if (suggestionAbortController) suggestionAbortController.abort();
+      suggestionAbortController = new AbortController();
+
+      const url = new URL('/api/geocode/suggest', window.location.origin);
+      url.searchParams.set('q', query);
+      url.searchParams.set('limit', '5');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: suggestionAbortController.signal,
+      });
+      if (!response.ok) throw new Error('No se pudieron cargar sugerencias');
+
+      const payload = await response.json().catch(() => null);
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      return items.map((item) => ({
+        raw: item,
+        primary: String(item.primary || item.display_name || '').trim(),
+        secondary: String(item.secondary || '').trim(),
+      }));
+    }
+
+    async function applySuggestion(suggestion) {
+      if (!suggestion?.raw) return;
+      const addressText = `${suggestion.primary}, ${suggestion.secondary}`;
+      direccionInput.value = addressText;
+      clearSuggestions();
+      await placeMarker(Number(suggestion.raw.latitud), Number(suggestion.raw.longitud), {
+        addressText,
+      });
+      setStatus('Dirección ubicada en el mapa.', 'ok');
+    }
+
+    async function reverseGeocode(lat, lng) {
+      if (reverseGeocodeAbortController) reverseGeocodeAbortController.abort();
+      reverseGeocodeAbortController = new AbortController();
+
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('lat', String(lat));
+      url.searchParams.set('lon', String(lng));
+      url.searchParams.set('zoom', '18');
+      url.searchParams.set('addressdetails', '1');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: reverseGeocodeAbortController.signal,
+      });
+      if (!response.ok) throw new Error('No se pudo resolver la dirección');
+      return response.json();
+    }
+
+    async function geocodeAddress(query) {
+      if (searchAbortController) searchAbortController.abort();
+      searchAbortController = new AbortController();
+
+      const url = new URL('/api/geocode', window.location.origin);
+      url.searchParams.set('direccion_texto', query);
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: searchAbortController.signal,
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(typeof payload?.detail === 'string' ? payload.detail : 'No se pudo ubicar la dirección');
+      return payload;
+    }
+
+    async function placeMarker(lat, lng, options = {}) {
+      const { updateMap = true, updateAddress = true, addressText = '' } = options;
+      marker.setLatLng([lat, lng]);
+      if (updateMap) map.setView([lat, lng], Math.max(map.getZoom(), 16));
+      updateCoordinateInputs(lat, lng);
+
+      if (addressText) {
+        direccionInput.value = addressText;
+        updateMapSummary(addressText);
+        return;
+      }
+
+      if (!updateAddress) {
+        updateMapSummary(`Ubicación fijada en ${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}.`);
+        return;
+      }
+
+      try {
+        const result = await reverseGeocode(lat, lng);
+        const label = String(result.display_name || '').trim();
+        if (label) {
+          direccionInput.value = label;
+          updateMapSummary(label);
+        }
+      } catch {
+        updateMapSummary(`Ubicación fijada en ${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}.`);
+      }
+    }
+
+    function initMap() {
+      map = L.map('publishMap', { zoomControl: true }).setView([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng], 13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 20,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        className: 'cucu-map-base',
+      }).addTo(map);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 20,
+        opacity: 0.92,
+        className: 'cucu-map-labels',
+      }).addTo(map);
+
+      marker = L.marker([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng], { draggable: true }).addTo(map);
+
+      map.on('click', (event) => {
+        placeMarker(event.latlng.lat, event.latlng.lng);
+      });
+
+      marker.on('dragend', () => {
+        const point = marker.getLatLng();
+        placeMarker(point.lat, point.lng, { updateMap: false });
+      });
+
+      updateCoordinateInputs(MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng);
+      direccionInput.value = '';
+      updateMapSummary('Ajusta el pin o escribe una dirección exacta.');
+    }
+
+    imageInput.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        setPreviewImage('');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewImage(String(reader.result || ''));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    removeImageButton?.addEventListener('click', clearSelectedImage);
+
+    ingredientList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-remove-ingredient]');
+      if (!button) return;
+      const index = Number(button.dataset.removeIngredient);
+      ingredientState = ingredientState.filter((_, itemIndex) => itemIndex !== index);
+      renderIngredients();
+    });
+
+    addIngredientPrimary.addEventListener('click', addIngredient);
+
+    direccionInput.addEventListener('input', () => {
+      const query = String(direccionInput.value || '').trim();
+      if (autocompleteTimer) window.clearTimeout(autocompleteTimer);
+
+      if (query.length < 4) {
+        clearSuggestions();
+        return;
+      }
+
+      autocompleteTimer = window.setTimeout(async () => {
+        try {
+          const suggestions = await fetchAddressSuggestions(query);
+          renderSuggestions(suggestions);
+        } catch (error) {
+          if (error?.name === 'AbortError') return;
+          clearSuggestions();
+        }
+      }, 280);
+    });
+
+    direccionInput.addEventListener('keydown', (event) => {
+      if (!suggestionItems.length) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const nextIndex = Math.min(activeSuggestionIndex + 1, suggestionItems.length - 1);
+        highlightSuggestion(nextIndex);
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        const nextIndex = Math.max(activeSuggestionIndex - 1, 0);
+        highlightSuggestion(nextIndex);
+      }
+
+      if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
+        event.preventDefault();
+        applySuggestion(suggestionItems[activeSuggestionIndex]);
+      }
+
+      if (event.key === 'Escape') {
+        clearSuggestions();
+      }
+    });
+
+    addressSuggestions.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-suggestion-index]');
+      if (!button) return;
+      const index = Number(button.dataset.suggestionIndex);
+      applySuggestion(suggestionItems[index]);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (event.target === direccionInput || addressSuggestions.contains(event.target)) return;
+      clearSuggestions();
+    });
+
+    locateAddressButton.addEventListener('click', async () => {
+      const query = String(direccionInput.value || '').trim();
+      if (!query) {
+        setStatus('Escribe primero una dirección para ubicarla en el mapa.', 'err');
+        direccionInput.focus();
+        return;
+      }
+
+      setStatus('Buscando la dirección en el mapa...');
+      try {
+        const result = await geocodeAddress(query);
+        await placeMarker(Number(result.latitud), Number(result.longitud), {
+          addressText: String(result.direccion_texto || query),
+        });
+        setStatus('Dirección ubicada en el mapa.', 'ok');
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+        setStatus(error instanceof Error ? error.message : 'No se pudo ubicar la dirección.', 'err');
+      }
+    });
+
+    geolocateBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        setStatus('Este navegador no soporta geolocalización.', 'err');
+        return;
+      }
+
+      setStatus('Obteniendo tu ubicación actual...');
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          await placeMarker(position.coords.latitude, position.coords.longitude);
+          setStatus('Ubicación actual fijada en el mapa.', 'ok');
+        },
+        (error) => {
+          setStatus(`No se pudo obtener la ubicación: ${error.message}.`, 'err');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+
+    cancelButton.addEventListener('click', () => {
+      form.reset();
+      ingredientState = [];
+      renderIngredients();
+      setPreviewImage('');
+      updateCoordinateInputs(MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng);
+      if (marker && map) {
+        marker.setLatLng([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng]);
+        map.setView([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng], 13);
+      }
+      direccionInput.value = '';
+      clearSuggestions();
+      updateMapSummary('Ajusta el pin o escribe una dirección exacta.');
+      setStatus('Formulario reiniciado.');
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus('Publicando...');
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      const payload = new FormData();
+      payload.set('titulo', String(data.titulo || '').trim());
+      payload.set('descripcion', String(data.descripcion || '').trim());
+      payload.set('categoria', String(tipoComidaSelect.value || 'otra').trim());
+      payload.set('precio', String(Number(data.precio)));
+      payload.set('stock', String(Number(data.stock)));
+      payload.set('maximo_por_venta', String(Number(data.maximo_por_venta)));
+      payload.set('direccion_texto', String(data.direccion_texto || '').trim());
+
+      if (data.latitud && data.longitud) {
+        payload.set('latitud', String(data.latitud));
+        payload.set('longitud', String(data.longitud));
+      }
+
+      ingredientState.forEach((ingredient, index) => {
+        payload.set(`ingredientes[${index}]`, String(ingredient || '').trim());
+      });
+
+      const selectedImage = imageInput.files?.[0];
+      if (selectedImage) {
+        payload.set('imagen', selectedImage);
+      }
+
+      const result = await authenticatedFetch('/api/publicaciones', {
+        method: 'POST',
+        body: payload,
+      });
+
+      if (!result) return;
+      const { response, payload: json } = result;
+      if (!response.ok) {
+        const detail = typeof json?.detail === 'string' ? json.detail : 'No se pudo publicar el platillo.';
+        setStatus(detail, 'err');
+        return;
+      }
+
+      clearPublicationCaches();
+      syncPublicationCaches(json);
+
+      form.reset();
+      ingredientState = [];
+      renderIngredients();
+      setPreviewImage('');
+      updateCoordinateInputs(MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng);
+      marker.setLatLng([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng]);
+      map.setView([MEDELLIN_CENTER.lat, MEDELLIN_CENTER.lng], 13);
+      direccionInput.value = '';
+      clearSuggestions();
+      updateMapSummary('Ajusta el pin o escribe una dirección exacta.');
+      setStatus('Platillo publicado y sincronizado con el catálogo.', 'ok');
+    });
+
+    ensureAuthenticatedSession();
+    renderIngredients();
+    setPreviewImage('');
+    initMap();
+    syncCartCount();
+    loadProfile();
+  </script>
+</body>
+</html>

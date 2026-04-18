@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Ubicacion
+from .infrastructure.models import Ubicacion
 
 
 @admin.register(Ubicacion)
